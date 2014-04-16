@@ -19,9 +19,9 @@ if (hasUserMedia()) {
     console.log("Raised an error when capturing:", error);
   });
 
-  var filters = ['', 'grayscale', 'sepia'],
+  var filters = ['', 'grayscale', 'sepia', 'invert'],
       currentFilter = 0;
-  document.querySelector('video').addEventListener('click', function (event) {
+  document.querySelector('#capture').addEventListener('click', function (event) {
     if (streaming) {
       canvas.width = video.clientWidth;
       canvas.height = video.clientHeight;
@@ -32,6 +32,9 @@ if (hasUserMedia()) {
       currentFilter++;
       if(currentFilter > filters.length - 1) currentFilter = 0;
       canvas.className = filters[currentFilter];
+
+      context.fillStyle = "white";
+      context.fillText("Hello World!", 10, 10);
     }
   });
 } else {
