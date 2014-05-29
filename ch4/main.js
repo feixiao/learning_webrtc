@@ -27,7 +27,9 @@ if (hasUserMedia()) {
 }
 
 function startPeerConnection(stream) {
-  var configuration = null;
+  var configuration = {
+    "iceServers": [{ "url": "stun:127.0.0.1:9876" }]
+  };
   yourConnection = new webkitRTCPeerConnection(configuration);
   theirConnection = new webkitRTCPeerConnection(configuration);
 
