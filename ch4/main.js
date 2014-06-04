@@ -36,21 +36,18 @@ function startPeerConnection(stream) {
   // Setup stream listening
   yourConnection.addStream(stream);
   theirConnection.onaddstream = function (e) {
-    console.log("Got stream");
     theirVideo.src = window.URL.createObjectURL(e.stream);
   };
 
   // Setup ice handling
   yourConnection.onicecandidate = function (event) {
     if (event.candidate) {
-      console.log("Adding ice candidate");
       theirConnection.addIceCandidate(new RTCIceCandidate(event.candidate));
     }
   };
 
   theirConnection.onicecandidate = function (event) {
     if (event.candidate) {
-      console.log("Adding ice candidate");
       yourConnection.addIceCandidate(new RTCIceCandidate(event.candidate));
     }
   };
@@ -58,13 +55,11 @@ function startPeerConnection(stream) {
   // Begin the offer
   yourConnection.createOffer(function (offer) {
     yourConnection.setLocalDescription(offer);
-    console.log("Got offer:", offer.sdp);
     theirConnection.setRemoteDescription(offer);
 
     theirConnection.createAnswer(function (offer) {
       theirConnection.setLocalDescription(offer);
       yourConnection.setRemoteDescription(offer);
-      console.log("Offers complete");
     });
   });
 };
