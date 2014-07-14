@@ -13,17 +13,20 @@ var yourVideo = document.querySelector('#yours'),
     yourConnection, theirConnection;
 
 if (hasUserMedia()) {
-  navigator.getUserMedia({ video: true, audio: true }, function (stream) {
+  navigator.getUserMedia({ video: true, audio: false }, function (stream) {
     yourVideo.src = window.URL.createObjectURL(stream);
 
     if (hasRTCPeerConnection()) {
       startPeerConnection(stream);
+    } else {
+      alert("Sorry, your browser does not support WebRTC.");
     }
   }, function (error) {
-    console.log("Raised an error when capturing:", error);
+    console.log(error);
+    //alert("Sorry, we failed to capture your camera, please try again.");
   });
 } else {
-  alert("Sorry, your browser does not support getUserMedia.");
+  alert("Sorry, your browser does not support WebRTC.");
 }
 
 function startPeerConnection(stream) {
