@@ -23,7 +23,6 @@ if (hasUserMedia()) {
     }
   }, function (error) {
     console.log(error);
-    //alert("Sorry, we failed to capture your camera, please try again.");
   });
 } else {
   alert("Sorry, your browser does not support WebRTC.");
