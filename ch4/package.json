@@ -1,0 +1,14 @@
+{
+  "name": "signaling-server",
+  "version": "0.0.1",
+  "description": "A simple signaling server for WebRTC.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dan Ristic",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "~0.4.31"
+  }
+}
