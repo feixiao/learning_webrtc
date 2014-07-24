@@ -3,11 +3,7 @@ var WebSocketServer = require('ws').Server,
     users = {};
 
 wss.on('connection', function (connection) {
-  console.log("User connected");
-
   connection.on('message', function (message) {
-    console.log("Got message:", message);
-
     var data;
 
     try {
@@ -27,6 +23,7 @@ wss.on('connection', function (connection) {
           });
         } else {
           users[data.name] = connection;
+          connection.name = data.name;
           sendTo(connection, {
             type: "login",
             success: true
@@ -37,11 +34,13 @@ wss.on('connection', function (connection) {
       case "offer":
         console.log("Sending offer to", data.name);
         var conn = users[data.name];
+        connection.otherName = data.name;
 
         if (conn != null) {
           sendTo(conn, {
             type: "offer",
-            offer: data.offer
+            offer: data.offer,
+            name: connection.name
           });
         }
 
@@ -49,6 +48,7 @@ wss.on('connection', function (connection) {
       case "answer":
         console.log("Sending answer to", data.name);
         var conn = users[data.name];
+        connection.otherName = data.name;
 
         if (conn != null) {
           sendTo(conn, {
@@ -73,6 +73,7 @@ wss.on('connection', function (connection) {
       case "leave":
         console.log("Disconnecting user from", data.name);
         var conn = users[data.name];
+        conn.otherName = null;
 
         if (conn != null) {
           sendTo(conn, {
@@ -91,9 +92,29 @@ wss.on('connection', function (connection) {
     }
   });
 
-  sendTo(connection, "Hello World");
+  connection.on('close', function () {
+    if (connection.name) {
+      delete users[connection.name];
+
+      if (connection.otherName) {
+        console.log("Disconnecting user from", connection.otherName);
+        var conn = users[connection.otherName];
+        conn.otherName = null;
+
+        if (conn != null) {
+          sendTo(conn, {
+            type: "leave"
+          });
+        }
+      }
+    }
+  });
 });
 
 function sendTo(conn, message) {
   conn.send(JSON.stringify(message));
 }
+
+wss.on('listening', function () {
+    console.log("Server started...");
+});
