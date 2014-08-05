@@ -34,9 +34,9 @@ wss.on('connection', function (connection) {
       case "offer":
         console.log("Sending offer to", data.name);
         var conn = users[data.name];
-        connection.otherName = data.name;
 
         if (conn != null) {
+          connection.otherName = data.name;
           sendTo(conn, {
             type: "offer",
             offer: data.offer,
@@ -48,9 +48,9 @@ wss.on('connection', function (connection) {
       case "answer":
         console.log("Sending answer to", data.name);
         var conn = users[data.name];
-        connection.otherName = data.name;
 
         if (conn != null) {
+          connection.otherName = data.name;
           sendTo(conn, {
             type: "answer",
             answer: data.answer

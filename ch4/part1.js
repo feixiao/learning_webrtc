@@ -4,7 +4,7 @@ var WebSocketServer = require('ws').Server,
 wss.on('connection', function (connection) {
   console.log("User connected");
 
-  wss.on('message', function (message) {
+  connection.on('message', function (message) {
     console.log("Got message:", message);
   });
 
