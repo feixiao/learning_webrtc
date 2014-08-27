@@ -65,7 +65,7 @@ function send(message) {
   }
 
   connection.send(JSON.stringify(message));
-}
+};
 
 function onLogin(success) {
   if (success === false) {
