@@ -9,6 +9,8 @@
       body {
         background-color: #3D6DF2;
         margin-top: 15px;
+        font-family: sans-serif;
+        color: white;
       }
 
       video {
@@ -16,7 +18,7 @@
         border: 1px solid gray;
       }
 
-      #container {
+      .page {
         position: relative;
         display: block;
         margin: 0 auto;
@@ -39,9 +41,17 @@
     </style>
   </head>
   <body>
-    <div id="container">
+    <div id="login-page" class="page">
+      <h2>Login As</h2>
+      <input type="text" id="username" />
+      <button id="login">Login</button>
+    </div>
+
+    <div id="call-page" class="page">
       <video id="yours" autoplay></video>
       <video id="theirs" autoplay></video>
+      <input type="text" id="their-username" />
+      <button id="call">Call</button>
     </div>
 
     <script src="client.js"></script>

@@ -1,14 +1,29 @@
-var connection = new WebSocket('ws://localhost:8888');
+var connection = new WebSocket('ws://localhost:8888'),
+    name = "";
 
-var name = "User" + Math.floor(Math.random() * 100);
+var loginPage = document.querySelector('#login-page'),
+    usernameInput = document.querySelector('#username'),
+    loginButton = document.querySelector('#login'),
+    callPage = document.querySelector('#call-page'),
+    theirUsernameInput = document.querySelector('#their-username'),
+    callButton = document.querySelector('#call');
+
+callPage.style.display = "none";
+
+// Login when the user clicks the button
+loginButton.addEventListener("click", function (event) {
+  name = usernameInput.value;
+
+  if (name.length > 0) {
+    send({
+      type: "login",
+      name: name
+    });
+  }
+});
 
 connection.onopen = function () {
   console.log("Connected");
-
-  send({
-    type: "login",
-    name: name
-  });
 };
 
 connection.onmessage = function (message) {
