@@ -6,7 +6,8 @@ var loginPage = document.querySelector('#login-page'),
     loginButton = document.querySelector('#login'),
     callPage = document.querySelector('#call-page'),
     theirUsernameInput = document.querySelector('#their-username'),
-    callButton = document.querySelector('#call');
+    callButton = document.querySelector('#call'),
+    hangUpButton = document.querySelector('#hang-up');
 
 callPage.style.display = "none";
 
@@ -26,6 +27,7 @@ connection.onopen = function () {
   console.log("Connected");
 };
 
+// Handle all messages through this callback
 connection.onmessage = function (message) {
   console.log("Got message", message.data);
 
@@ -56,6 +58,7 @@ connection.onerror = function (err) {
   console.log("Got error", err);
 };
 
+// Alias for sending messages in JSON format
 function send(message) {
   if (connectedUser) {
     message.name = connectedUser;
@@ -64,25 +67,33 @@ function send(message) {
   connection.send(JSON.stringify(message));
 }
 
-var timeout = 500;
-var name = "User" + Math.floor(Math.random() * 100);
 function onLogin(success) {
   if (success === false) {
-    // Try to login again after a timeout
-    setTimeout(function () {
-        name = "User" + Math.floor(Math.random() * 100);
-        connection.send(JSON.stringify({
-          type: "login",
-          name: name
-        }));
-    }, timeout);
-    timout = timeout * 2;
+    alert("Login unsuccessful, please try a different name.");
   } else {
-    timeout = 500;
-    console.log("READY!", name);
+    loginPage.style.display = "none";
+    callPage.style.display = "block";
+
+    // Get the plumbing ready for a call
     startConnection();
   }
 };
+
+callButton.addEventListener("click", function () {
+  var theirUsername = theirUsernameInput.value;
+
+  if (theirUsername.length > 0) {
+    startPeerConnection(theirUsername);
+  }
+});
+
+hangUpButton.addEventListener("click", function () {
+  send({
+    type: "leave"
+  });
+
+  onLeave();
+});
 
 function onOffer(offer, name) {
   connectedUser = name;
@@ -94,6 +105,8 @@ function onOffer(offer, name) {
       type: "answer",
       answer: answer
     });
+  }, function (error) {
+    alert("An error has occurred");
   });
 }
 
@@ -108,6 +121,7 @@ function onCandidate(candidate) {
 function onLeave() {
   connectedUser = null;
   theirVideo.src = null;
+  yourConnection.close();
   yourConnection.onicecandidate = null;
   yourConnection.onaddstream = null;
   setupPeerConnection(stream);
@@ -120,6 +134,8 @@ function hasUserMedia() {
 
 function hasRTCPeerConnection() {
   window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+  window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription;
+  window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
   return !!window.RTCPeerConnection;
 }
 
@@ -179,5 +195,7 @@ function startPeerConnection(user) {
       offer: offer
     });
     yourConnection.setLocalDescription(offer);
+  }, function (error) {
+    alert("An error has occurred.");
   });
 };
