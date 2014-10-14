@@ -1,27 +1,7 @@
-var connection = new WebSocket('ws://localhost:8888'),
-    name = "";
+var name,
+    connectedUser;
 
-var loginPage = document.querySelector('#login-page'),
-    usernameInput = document.querySelector('#username'),
-    loginButton = document.querySelector('#login'),
-    callPage = document.querySelector('#call-page'),
-    theirUsernameInput = document.querySelector('#their-username'),
-    callButton = document.querySelector('#call'),
-    hangUpButton = document.querySelector('#hang-up');
-
-callPage.style.display = "none";
-
-// Login when the user clicks the button
-loginButton.addEventListener("click", function (event) {
-  name = usernameInput.value;
-
-  if (name.length > 0) {
-    send({
-      type: "login",
-      name: name
-    });
-  }
-});
+var connection = new WebSocket('ws://localhost:8888');
 
 connection.onopen = function () {
   console.log("Connected");
@@ -67,6 +47,28 @@ function send(message) {
   connection.send(JSON.stringify(message));
 };
 
+var loginPage = document.querySelector('#login-page'),
+    usernameInput = document.querySelector('#username'),
+    loginButton = document.querySelector('#login'),
+    callPage = document.querySelector('#call-page'),
+    theirUsernameInput = document.querySelector('#their-username'),
+    callButton = document.querySelector('#call'),
+    hangUpButton = document.querySelector('#hang-up');
+
+callPage.style.display = "none";
+
+// Login when the user clicks the button
+loginButton.addEventListener("click", function (event) {
+  name = usernameInput.value;
+
+  if (name.length > 0) {
+    send({
+      type: "login",
+      name: name
+    });
+  }
+});
+
 function onLogin(success) {
   if (success === false) {
     alert("Login unsuccessful, please try a different name.");
@@ -77,66 +79,6 @@ function onLogin(success) {
     // Get the plumbing ready for a call
     startConnection();
   }
-};
-
-callButton.addEventListener("click", function () {
-  var theirUsername = theirUsernameInput.value;
-
-  if (theirUsername.length > 0) {
-    startPeerConnection(theirUsername);
-  }
-});
-
-hangUpButton.addEventListener("click", function () {
-  send({
-    type: "leave"
-  });
-
-  onLeave();
-});
-
-function onOffer(offer, name) {
-  connectedUser = name;
-  yourConnection.setRemoteDescription(new RTCSessionDescription(offer));
-
-  yourConnection.createAnswer(function (answer) {
-    yourConnection.setLocalDescription(answer);
-    send({
-      type: "answer",
-      answer: answer
-    });
-  }, function (error) {
-    alert("An error has occurred");
-  });
-}
-
-function onAnswer(answer) {
-  yourConnection.setRemoteDescription(new RTCSessionDescription(answer));
-};
-
-function onCandidate(candidate) {
-  yourConnection.addIceCandidate(new RTCIceCandidate(candidate));
-};
-
-function onLeave() {
-  connectedUser = null;
-  theirVideo.src = null;
-  yourConnection.close();
-  yourConnection.onicecandidate = null;
-  yourConnection.onaddstream = null;
-  setupPeerConnection(stream);
-};
-
-function hasUserMedia() {
-  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-  return !!navigator.getUserMedia;
-};
-
-function hasRTCPeerConnection() {
-  window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-  window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription;
-  window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
-  return !!window.RTCPeerConnection;
 };
 
 var yourVideo = document.querySelector('#yours'),
@@ -160,7 +102,7 @@ function startConnection() {
   } else {
     alert("Sorry, your browser does not support WebRTC.");
   }
-};
+}
 
 function setupPeerConnection(stream) {
   var configuration = {
@@ -183,7 +125,27 @@ function setupPeerConnection(stream) {
       });
     }
   };
-};
+}
+
+function hasUserMedia() {
+  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+  return !!navigator.getUserMedia;
+}
+
+function hasRTCPeerConnection() {
+  window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+  window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription;
+  window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
+  return !!window.RTCPeerConnection;
+}
+
+callButton.addEventListener("click", function () {
+  var theirUsername = theirUsernameInput.value;
+
+  if (theirUsername.length > 0) {
+    startPeerConnection(theirUsername);
+  }
+});
 
 function startPeerConnection(user) {
   connectedUser = user;
@@ -198,4 +160,44 @@ function startPeerConnection(user) {
   }, function (error) {
     alert("An error has occurred.");
   });
+};
+
+function onOffer(offer, name) {
+  connectedUser = name;
+  yourConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+  yourConnection.createAnswer(function (answer) {
+    yourConnection.setLocalDescription(answer);
+    send({
+      type: "answer",
+      answer: answer
+    });
+  }, function (error) {
+    alert("An error has occurred");
+  });
+};
+
+function onAnswer(answer) {
+  yourConnection.setRemoteDescription(new RTCSessionDescription(answer));
+};
+
+function onCandidate(candidate) {
+  yourConnection.addIceCandidate(new RTCIceCandidate(candidate));
+};
+
+hangUpButton.addEventListener("click", function () {
+  send({
+    type: "leave"
+  });
+
+  onLeave();
+});
+
+function onLeave() {
+  connectedUser = null;
+  theirVideo.src = null;
+  yourConnection.close();
+  yourConnection.onicecandidate = null;
+  yourConnection.onaddstream = null;
+  setupPeerConnection(stream);
 };

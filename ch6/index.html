@@ -38,6 +38,17 @@
         width: 500px;
         height: 500px;
       }
+
+      #received {
+        display: block;
+        width: 480px;
+        height: 100px;
+        background: white;
+        padding: 10px;
+        margin-top: 10px;
+        color: black;
+        overflow: scroll;
+      }
     </style>
   </head>
   <body>
@@ -53,6 +64,10 @@
       <input type="text" id="their-username" />
       <button id="call">Call</button>
       <button id="hang-up">Hang Up</button>
+
+      <input type="text" id="message"></input>
+      <button id="send">Send</button>
+      <div id="received"></div>
     </div>
 
     <!--<script src="client.js"></script>-->
