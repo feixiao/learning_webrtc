@@ -1,3 +1,4 @@
+
 var name,
     connectedUser;
 
@@ -50,15 +51,14 @@ function send(message) {
 var loginPage = document.querySelector('#login-page'),
     usernameInput = document.querySelector('#username'),
     loginButton = document.querySelector('#login'),
-    callPage = document.querySelector('#call-page'),
     theirUsernameInput = document.querySelector('#their-username'),
-    callButton = document.querySelector('#call'),
-    hangUpButton = document.querySelector('#hang-up'),
-    messageInput = document.querySelector('#message'),
+    connectButton = document.querySelector('#connect'),
+    sharePage = document.querySelector('#share-page'),
     sendButton = document.querySelector('#send'),
-    received = document.querySelector('#received');
+    readyText = document.querySelector('#ready');
 
-callPage.style.display = "none";
+sharePage.style.display = "none";
+readyText.style.display = "none";
 
 // Login when the user clicks the button
 loginButton.addEventListener("click", function (event) {
@@ -77,47 +77,28 @@ function onLogin(success) {
     alert("Login unsuccessful, please try a different name.");
   } else {
     loginPage.style.display = "none";
-    callPage.style.display = "block";
+    sharePage.style.display = "block";
 
     // Get the plumbing ready for a call
     startConnection();
   }
 };
 
-var yourVideo = document.querySelector('#yours'),
-    theirVideo = document.querySelector('#theirs'),
-    yourConnection, connectedUser, stream, dataChannel;
+var yourConnection, connectedUser, dataChannel, currentFile, currentFileMeta;
 
 function startConnection() {
-  if (hasUserMedia()) {
-    navigator.getUserMedia({ video: true, audio: false }, function (myStream) {
-      stream = myStream;
-      yourVideo.src = window.URL.createObjectURL(stream);
-
-      if (hasRTCPeerConnection()) {
-        setupPeerConnection(stream);
-      } else {
-        alert("Sorry, your browser does not support WebRTC.");
-      }
-    }, function (error) {
-      console.log(error);
-    });
+  if (hasRTCPeerConnection()) {
+    setupPeerConnection();
   } else {
     alert("Sorry, your browser does not support WebRTC.");
   }
 }
 
-function setupPeerConnection(stream) {
+function setupPeerConnection() {
   var configuration = {
     "iceServers": [{ "url": "stun:127.0.0.1:9876" }]
   };
-  yourConnection = new RTCPeerConnection(configuration, {optional: [{RtpDataChannels: true}]});
-
-  // Setup stream listening
-  yourConnection.addStream(stream);
-  yourConnection.onaddstream = function (e) {
-    theirVideo.src = window.URL.createObjectURL(e.stream);
-  };
+  yourConnection = new RTCPeerConnection(configuration, {optional: []});
 
   // Setup ice handling
   yourConnection.onicecandidate = function (event) {
@@ -134,7 +115,10 @@ function setupPeerConnection(stream) {
 
 function openDataChannel() {
   var dataChannelOptions = {
-    reliable: true
+    ordered: true,
+    reliable: true,
+    negotiated: true,
+    id: "myChannel"
   };
   dataChannel = yourConnection.createDataChannel("myLabel", dataChannelOptions);
 
@@ -143,28 +127,47 @@ function openDataChannel() {
   };
 
   dataChannel.onmessage = function (event) {
-    console.log("Got Data Channel Message:", event.data);
+    try {
+      var message = JSON.parse(event.data);
 
-    received.innerHTML += event.data + "<br />";
-    received.scrollTop = received.scrollHeight;
+      switch (message.type) {
+        case "start":
+          currentFile = [];
+          currentFileMeta = message.data;
+          console.log("Receiving file", currentFileMeta);
+          break;
+        case "end":
+          saveFile(currentFileMeta, currentFile);
+          break;
+      }
+    } catch (e) {
+      // Assume this is file content
+      currentFile.push(atob(event.data));
+    }
   };
 
   dataChannel.onopen = function () {
-    dataChannel.send(name + " has connected.");
+    readyText.style.display = "inline-block";
   };
 
   dataChannel.onclose = function () {
-    console.log("The Data Channel is Closed");
+    readyText.style.display = "none";
   };
 }
 
-// Bind our text input and received area
-sendButton.addEventListener("click", function (event) {
-  var val = messageInput.value;
-  received.innerHTML += val + "<br />";
-  received.scrollTop = received.scrollHeight;
-  dataChannel.send(val);
-});
+// Alias for sending messages in JSON format
+function dataChannelSend(message) {
+  dataChannel.send(JSON.stringify(message));
+}
+
+function saveFile(meta, data) {
+  var blob = base64ToBlob(data, meta.type);
+
+  var link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = meta.name;
+  link.click();
+}
 
 function hasUserMedia() {
   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -178,7 +181,11 @@ function hasRTCPeerConnection() {
   return !!window.RTCPeerConnection;
 }
 
-callButton.addEventListener("click", function () {
+function hasFileApi() {
+  return window.File && window.FileReader && window.FileList && window.Blob;
+}
+
+connectButton.addEventListener("click", function () {
   var theirUsername = theirUsernameInput.value;
 
   if (theirUsername.length > 0) {
@@ -225,19 +232,98 @@ function onCandidate(candidate) {
   yourConnection.addIceCandidate(new RTCIceCandidate(candidate));
 };
 
-hangUpButton.addEventListener("click", function () {
-  send({
-    type: "leave"
-  });
-
-  onLeave();
-});
-
 function onLeave() {
   connectedUser = null;
-  theirVideo.src = null;
   yourConnection.close();
   yourConnection.onicecandidate = null;
-  yourConnection.onaddstream = null;
-  setupPeerConnection(stream);
+  setupPeerConnection();
 };
+
+function arrayBufferToBase64(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return btoa(binary);
+}
+
+function base64ToBlob(b64Data, contentType) {
+    contentType = contentType || '';
+
+    var byteArrays = [], byteNumbers, slice;
+
+    for (var i = 0; i < b64Data.length; i++) {
+      slice = b64Data[i];
+
+      byteNumbers = new Array(slice.length);
+      for (var n = 0; n < slice.length; n++) {
+          byteNumbers[n] = slice.charCodeAt(n);
+      }
+
+      var byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+}
+
+var CHUNK_MAX = 16000;
+function sendFile(file) {
+  var reader = new FileReader();
+
+  reader.onloadend = function(evt) {
+    if (evt.target.readyState == FileReader.DONE) {
+      var buffer = reader.result,
+          start = 0,
+          end = 0,
+          last = false;
+
+      function sendChunk() {
+        end = start + CHUNK_MAX;
+
+        if (end > file.size) {
+          end = file.size;
+          last = true;
+        }
+
+        dataChannel.send(arrayBufferToBase64(buffer.slice(start, end)));
+
+        // If this is the last chunk send our end message, otherwise keep sending
+        if (last === true) {
+          dataChannelSend({
+            type: "end"
+          });
+        } else {
+          start = end;
+          // Throttle the sending to avoid flooding
+          setTimeout(function () {
+            sendChunk();
+          }, 100);
+        }
+      }
+
+      sendChunk();
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+sendButton.addEventListener("click", function (event) {
+  var files = document.getElementById('files').files;
+
+  if (!files.length) {
+    alert('Please select a file!');
+  } else {
+    dataChannelSend({
+      type: "start",
+      data: files[0]
+    });
+
+    sendFile(files[0]);
+  }
+});
