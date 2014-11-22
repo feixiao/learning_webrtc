@@ -314,11 +314,9 @@ function sendFile(file) {
 }
 
 sendButton.addEventListener("click", function (event) {
-  var files = document.getElementById('files').files;
+  var files = document.querySelector('#files').files;
 
-  if (!files.length) {
-    alert('Please select a file!');
-  } else {
+  if (files.length > 0) {
     dataChannelSend({
       type: "start",
       data: files[0]
