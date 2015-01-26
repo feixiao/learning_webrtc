@@ -55,7 +55,8 @@ var loginPage = document.querySelector('#login-page'),
     connectButton = document.querySelector('#connect'),
     sharePage = document.querySelector('#share-page'),
     sendButton = document.querySelector('#send'),
-    readyText = document.querySelector('#ready');
+    readyText = document.querySelector('#ready'),
+    statusText = document.querySelector('#status');
 
 sharePage.style.display = "none";
 readyText.style.display = "none";
@@ -84,7 +85,7 @@ function onLogin(success) {
   }
 };
 
-var yourConnection, connectedUser, dataChannel, currentFile, currentFileMeta;
+var yourConnection, connectedUser, dataChannel, currentFile, currentFileSize, currentFileMeta;
 
 function startConnection() {
   if (hasRTCPeerConnection()) {
@@ -133,6 +134,7 @@ function openDataChannel() {
       switch (message.type) {
         case "start":
           currentFile = [];
+          currentFileSize = 0;
           currentFileMeta = message.data;
           console.log("Receiving file", currentFileMeta);
           break;
@@ -143,6 +145,11 @@ function openDataChannel() {
     } catch (e) {
       // Assume this is file content
       currentFile.push(atob(event.data));
+
+      currentFileSize += currentFile[currentFile.length - 1].length;
+
+      var percentage = Math.floor((currentFileSize / currentFileMeta.size) * 100);
+      statusText.innerHTML = "Receiving... " + percentage + "%";
     }
   };
 
@@ -289,6 +296,9 @@ function sendFile(file) {
           end = file.size;
           last = true;
         }
+
+        var percentage = Math.floor((end / file.size) * 100);
+        statusText.innerHTML = "Sending... " + percentage + "%";
 
         dataChannel.send(arrayBufferToBase64(buffer.slice(start, end)));
 
