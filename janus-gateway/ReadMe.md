@@ -26,8 +26,6 @@
 ./bin/janus
 ```
 
-
-
 #### nodejs
 
 ```
@@ -47,3 +45,8 @@ http://127.0.0.1:8080/echotest.html
 
 
 
+###  源码结构
+
++ [源码文件功能分析](https://janus.conf.meetecho.com/docs/files.html)
++ [模块分析](https://janus.conf.meetecho.com/docs/modules.html)
++ [数据结构分析](https://janus.conf.meetecho.com/docs/annotated.html)
