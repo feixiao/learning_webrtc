@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Learning WebRTC - Chapter 2: Get User Media</title>
+
+    <style>
+      video, canvas {
+        border: 1px solid gray;
+        width: 480px;
+        height: 320px;
+      }
+
+      .grayscale {
+        -webkit-filter: grayscale(1);
+        -moz-filter: grayscale(1);
+        -ms-filter: grayscale(1);
+        -o-filter: grayscale(1);
+        filter: grayscale(1);
+      }
+
+      .sepia {
+        -webkit-filter: sepia(1);
+        -moz-filter: sepia(1);
+        -ms-filter: sepia(1);
+        -o-filter: sepia(1);
+        filter: sepia(1);
+      }
+
+      .invert {
+        -webkit-filter: invert(1);
+        -moz-filter: invert(1);
+        -ms-filter: invert(1);
+        -o-filter: invert(1);
+        filter: invert(1);
+      }
+    </style>
+  </head>
+  <body>
+    <video autoplay></video>
+    <canvas></canvas>
+    <button id="capture">Capture</button>
+    <script src="photobooth.js"></script>
+  </body>
+</html>

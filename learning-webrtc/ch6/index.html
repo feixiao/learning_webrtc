@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Learning WebRTC - Chapter 5: Connecting Clients Together</title>
+
+    <style>
+      body {
+        background-color: #3D6DF2;
+        margin-top: 15px;
+        font-family: sans-serif;
+        color: white;
+      }
+
+      video {
+        background: black;
+        border: 1px solid gray;
+      }
+
+      .page {
+        position: relative;
+        display: block;
+        margin: 0 auto;
+        width: 500px;
+        height: 500px;
+      }
+
+      #yours {
+        width: 150px;
+        height: 150px;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+      }
+
+      #theirs {
+        width: 500px;
+        height: 500px;
+      }
+
+      #received {
+        display: block;
+        width: 480px;
+        height: 100px;
+        background: white;
+        padding: 10px;
+        margin-top: 10px;
+        color: black;
+        overflow: scroll;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="login-page" class="page">
+      <h2>Login As</h2>
+      <input type="text" id="username" />
+      <button id="login">Login</button>
+    </div>
+
+    <div id="call-page" class="page">
+      <video id="yours" autoplay></video>
+      <video id="theirs" autoplay></video>
+      <input type="text" id="their-username" />
+      <button id="call">Call</button>
+      <button id="hang-up">Hang Up</button>
+
+      <input type="text" id="message"></input>
+      <button id="send">Send</button>
+      <div id="received"></div>
+    </div>
+
+    <!--<script src="client.js"></script>-->
+    <script src="part3.js"></script>
+  </body>
+</html>

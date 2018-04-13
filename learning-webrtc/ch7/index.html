@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Learning WebRTC - Chapter 7: File Sharing</title>
+
+    <style>
+      body {
+        background-color: #404040;
+        margin-top: 15px;
+        font-family: sans-serif;
+        color: white;
+      }
+
+      .thumb {
+        height: 75px;
+        border: 1px solid #000;
+        margin: 10px 5px 0 0;
+      }
+
+      .page {
+        position: relative;
+        display: block;
+        margin: 0 auto;
+        width: 500px;
+        height: 500px;
+      }
+
+      #byte_content {
+        margin: 5px 0;
+        max-height: 100px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      #byte_range {
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="login-page" class="page">
+      <h2>Login As</h2>
+      <input type="text" id="username" />
+      <button id="login">Login</button>
+    </div>
+
+    <div id="share-page" class="page">
+      <h2>File Sharing</h2>
+
+      <input type="text" id="their-username" />
+      <button id="connect">Connect</button>
+      <div id="ready">Ready!</div>
+
+      <br />
+      <br />
+
+      <input type="file" id="files" name="file" />
+      <button id="send">Send</button>
+
+      <br />
+      <br />
+
+      <div id="status"></div>
+    </div>
+
+    <script src="client.js"></script>
+  </body>
+</html>

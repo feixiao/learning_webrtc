@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Learning WebRTC - Chapter 4: Creating a RTCPeerConnection</title>
+
+    <style>
+      body {
+        background-color: #3D6DF2;
+        margin-top: 15px;
+      }
+
+      video {
+        background: black;
+        border: 1px solid gray;
+      }
+
+      #container {
+        position: relative;
+        display: block;
+        margin: 0 auto;
+        width: 500px;
+        height: 500px;
+      }
+
+      #yours {
+        width: 150px;
+        height: 150px;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+      }
+
+      #theirs {
+        width: 500px;
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <video id="yours" autoplay></video>
+      <video id="theirs" autoplay></video>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
