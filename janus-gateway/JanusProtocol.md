@@ -111,9 +111,143 @@
 
 ##### The plugin handle endpoint
 
+一旦你创建了一个插件句柄，你就可以使用在网关中创建的一个新的端点。具体地说，新的端点是通过连接the gateway root、会话标识符和您已返回的新插件句柄标识符来构造的（比如`/janus/12345678/98765432`）。
+
+你可以使用这个插件句柄来处理与插件通信相关的所有内容，给插件发送消息，商议Webrtc连接(attach)到该插件等等。
+
+给插件发送消息/请求，你需要使用Post方法，数据指示为"message"。body字段将会包含特定的Json数据，如果消息还需要传达webrtc相关的谈判信息，那么JSEP字段中包含JSEP对象的json化版本也可以被附加。
+
++ **关闭声音的例子**
+
+  ```json
+  {
+          "janus" : "message",
+          "transaction" : "sBJNyUhH6Vc6",
+          "body" : {
+                  "audio" : false
+          }
+  }
+  ```
+
++ **包含协商信息的例子**
+
+  ```json
+  {
+          "janus" : "message",
+          "transaction" : "sBJNyUhH6Vc6",
+          "body" : {
+                  "audio" : false
+          },
+          "jsep" : {
+                  "type" : "offer",
+                  "sdp" : "v=0\r\no=[..more sdp stuff..]"
+          }
+  }
+  ```
+
+  注意：出于任何理由你都不想使用the trickling of ICE candidates(这意味着这些都会包含在the SDP OFFER or ANSWER)，你必须添加额外的`"trickle" : false`到jsep对象，去显示的告知Janus不要发送任何的`trickle` candidate。
+
+  **启用trickled的方式**
+
+  ```json
+  {
+          "janus" : "trickle",
+          "transaction" : "hehe83hd8dw12e",
+          "candidates" : [ 
+                  {
+                          "sdpMid" : "video",
+                          "sdpMLineIndex" : 1,
+                          "candidate" : "..."
+                  },
+                  {
+                          "sdpMid" : "video",
+                          "sdpMLineIndex" : 1,
+                          "candidate" : "..."
+                  },
+                  [..]
+          ]
+  }
+  ```
+
+  插件处理这种请求可能是同步也可以是异步。同步消息会立马返回，异步消息会返回ack发送给客户。
+
++ 销毁the plugin handle,可以发送detach消息
+
+  ```json
+  {
+          "janus" : "detach",
+          "transaction" : "<random string>"
+  }
+  ```
+
++ 如果想让保持handle存活，想要挂起相关的PeerConnection
+
+  ```json
+  {
+          "janus" : "hangup",
+          "transaction" : "<random string>"
+  }
+  ```
+
+#### Webrtc相关事件
+
+##### webrtcup 
+
+ICE和DTLS成功了，因此Janus正确地建立了与用户/应用程序的PeerConnection。
+
+```json
+{
+        "janus" : "webrtcup",
+        session_id: <the session identifier>,
+        sender: <the handle identifier>
+}
+```
+
+#### media
+
+Janus是否正在接受（`receiving:` `true/false`）音频/视频（`type:` `"audio/video"`）;
+
+```json
+{
+        "janus" : "media",
+        session_id: <the session identifier>,
+        sender: <the handle identifier>,
+        "type" : "audio",
+        "receiving" : true
+}
+```
+
+##### slowlink
+
+Janus是否报告在这个PeerConnection发送/接收(上行:true / false)媒体数据存在麻烦;
+
+```json
+{
+        "janus" : "slowlink",
+        "session_id" : <the session identifier>,
+        "sender" : <the handle identifier>
+        "uplink" : true,
+        "nacks" : <number of NACKs in the last second>
+}
+```
+
+##### hangup
+
+PeerConnection对象关闭
+
+```json
+{
+        "janus" : "hangup",
+        "session_id" : <the session identifier>,
+        "sender" : <the handle identifier>,
+        "reason" : "DTLS alert"
+}
+```
+
 
 
 ### 参考资料
 
 + [Janus Protocol](https://janus.conf.meetecho.com/docs/rest.html)
 + [JavaScript API](https://janus.conf.meetecho.com/docs/JS.html)   
+
