@@ -40,7 +40,7 @@
   ```json
   {
           "janus" : "create",
-          "transaction" : "<random alphanumeric string>"
+          "transaction" : "<random alphanumeric string>"  # 客户端标记的请求标识，每次需要不一样
   }
   ```
 
@@ -51,7 +51,7 @@
           "janus" : "success",
           "transaction" : "<same as the request>",
           "data" : {
-                  "id" : <unique integer session ID>
+                  "id" : <unique integer session ID> # 服务端分配的SessionID
           }
   }
   ```
@@ -95,8 +95,10 @@
   {
           "janus" : "attach",
           "plugin" : "<the plugin's unique package name>",
-          "transaction" : "<random string>"
+          "transaction" : "<random string>"     # 客户端标记的请求标识，每次需要不一样
   }
+
+  # attch的回复会带有HandleID
   ```
 
   destory
