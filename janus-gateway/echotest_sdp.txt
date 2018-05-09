@@ -1,0 +1,115 @@
+
+# OFFER 
+v=0
+o=mozilla...THIS_IS_SDPARTA-59.0.3 1815213017397450941 0 IN IP4 0.0.0.0
+s=- 
+t=0 0 
+a=fingerprint:sha-256 FA:5C:C0:13:A1:A4:F8:7B:C4:8A:88:DF:82:18:77:4E:27:21:B0:E7:02:B9:6B:EE:57:08:89:9A:80:23:B2:0E 
+a=group:BUNDLE sdparta_0 sdparta_1 sdparta_2 
+a=ice-options:trickle a=msid-semantic:WMS * 
+m=audio 9 UDP/TLS/RTP/SAVPF 109 9 0 8 101 
+c=IN IP4 0.0.0.0 a=sendrecv a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level 
+a=extmap:2 urn:ietf:params:rtp-hdrext:sdes:mid 
+a=fmtp:109 maxplaybackrate=48000;stereo=1;useinbandfec=1 
+a=fmtp:101 0-15 a=ice-pwd:fce81d64f1d26d475024b43a01d32730 
+a=ice-ufrag:a387c063 
+a=mid:sdparta_0 
+a=msid:{1195e3e2-4586-4813-a250-b428a5dceff0} {02aa8736-ee44-425c-a7da-53e434dcf236} 
+a=rtcp-mux 
+a=rtpmap:109 opus/48000/2 
+a=rtpmap:9 G722/8000/1 
+a=rtpmap:0 PCMU/8000 
+a=rtpmap:8 PCMA/8000 
+a=rtpmap:101 telephone-event/8000/1 
+a=setup:actpass 
+a=ssrc:1351558007 cname:{436f99b2-d718-43f0-9c3b-47fd51935dff} 
+m=video 9 UDP/TLS/RTP/SAVPF 120 121 126 97 c=IN IP4 0.0.0.0 
+a=sendrecv 
+a=extmap:1 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time a=extmap:2 urn:ietf:params:rtp-hdrext:toffset 
+a=extmap:3 urn:ietf:params:rtp-hdrext:sdes:mid a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1 
+a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1 a=fmtp:120 max-fs=12288;max-fr=60 a=fmtp:121 max-fs=12288;max-fr=60 
+a=ice-pwd:fce81d64f1d26d475024b43a01d32730 
+a=ice-ufrag:a387c063 a=mid:sdparta_1 
+a=msid:{1195e3e2-4586-4813-a250-b428a5dceff0} {5270ae02-5dd7-4cb7-8571-792dc3ed4d4a} 
+a=rtcp-fb:120 nack 
+a=rtcp-fb:120 nack pli 
+a=rtcp-fb:120 ccm fir 
+a=rtcp-fb:120 goog-remb 
+a=rtcp-fb:121 nack 
+a=rtcp-fb:121 nack pli 
+a=rtcp-fb:121 ccm fir 
+a=rtcp-fb:121 goog-remb 
+a=rtcp-fb:126 nack 
+a=rtcp-fb:126 nack pli 
+a=rtcp-fb:126 ccm fir 
+a=rtcp-fb:126 goog-remb 
+a=rtcp-fb:97 nack 
+a=rtcp-fb:97 nack pli 
+a=rtcp-fb:97 ccm fir 
+a=rtcp-fb:97 goog-remb 
+a=rtcp-mux 
+a=rtpmap:120 VP8/90000 
+a=rtpmap:121 VP9/90000 
+a=rtpmap:126 H264/90000 
+a=rtpmap:97 H264/90000 
+a=setup:actpass 
+a=ssrc:33853765 cname:{436f99b2-d718-43f0-9c3b-47fd51935dff} 
+m=application 9 DTLS/SCTP 5000 
+c=IN IP4 0.0.0.0 a=sendrecv 
+a=ice-pwd:fce81d64f1d26d475024b43a01d32730 
+a=ice-ufrag:a387c063 a=mid:sdparta_2 
+a=sctpmap:5000 webrtc-datachannel 256 
+a=setup:actpass 
+a=max-message-size:1073741823 
+
+
+# ANSWER
+v=0
+o=mozilla...THIS_IS_SDPARTA-59.0.3 1525857525581093 1 IN IP4 172.28.104.225 
+s=- 
+t=0 0 
+a=group:BUNDLE sdparta_0 sdparta_1 
+a=msid-semantic: WMS janus 
+m=audio 9 UDP/TLS/RTP/SAVPF 109 
+c=IN IP4 172.28.104.225 
+a=sendrecv 
+a=mid:sdparta_0 
+a=rtcp-mux 
+a=ice-ufrag:REPb 
+a=ice-pwd:bk84wilJOcWfI3yke8+shT 
+a=ice-options:trickle 
+a=fingerprint:sha-256 D2:B9:31:8F:DF:24:D8:0E:ED:D2:EF:25:9E:AF:6F:B8:34:AE:53:9C:E6:F3:8F:F2:64:15:FA:E8:7F:53:2D:38 
+a=setup:active 
+a=rtpmap:109 opus/48000/2 
+a=ssrc:63327372 cname:janusaudio 
+a=ssrc:63327372 msid:janus janusa0 
+a=ssrc:63327372 mslabel:janus 
+a=ssrc:63327372 label:janusa0 
+a=candidate:1 1 udp 2013266431 172.28.104.225 57649 typ host 
+a=candidate:2 1 udp 2013266430 192.168.31.71 52127 typ host 
+a=end-of-candidates 
+m=video 9 UDP/TLS/RTP/SAVPF 120 
+c=IN IP4 172.28.104.225 
+a=sendrecv 
+a=mid:sdparta_1 
+a=rtcp-mux 
+a=ice-ufrag:REPb 
+a=ice-pwd:bk84wilJOcWfI3yke8+shT 
+a=ice-options:trickle a=fingerprint:sha-256 D2:B9:31:8F:DF:24:D8:0E:ED:D2:EF:25:9E:AF:6F:B8:34:AE:53:9C:E6:F3:8F:F2:64:15:FA:E8:7F:53:2D:38 
+a=setup:active 
+a=rtpmap:120 VP8/90000 
+a=rtcp-fb:120 ccm fir 
+a=rtcp-fb:120 nack 
+a=rtcp-fb:120 nack pli 
+a=rtcp-fb:120 goog-remb 
+a=rtcp-fb:120 transport-cc 
+a=ssrc:1503870278 cname:janusvideo 
+a=ssrc:1503870278 msid:janus janusv0 
+a=ssrc:1503870278 mslabel:janus 
+a=ssrc:1503870278 label:janusv0 
+a=candidate:1 1 udp 2013266431 172.28.104.225 57649 typ host 
+a=candidate:2 1 udp 2013266430 192.168.31.71 52127 typ host 
+a=end-of-candidates 
+m=application 0 DTLS/SCTP 0 
+c=IN IP4 172.28.104.225 
+a=inactive 

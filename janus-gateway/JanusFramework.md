@@ -115,6 +115,8 @@ struct janus_transport_callbacks {
 #### 主程
 
 ```
+传输插件通过janus_handler_transport.incoming_request 回调函数调用janus_transport_incoming_request 主程接收到需要处理的命令，在janus_transport_requests中处理。
+
 // 启动分发传入请求的线程
 requests = g_async_queue_new_full((GDestroyNotify) janus_request_destroy);
 // 线程主要处理请求队列
@@ -126,12 +128,13 @@ error = NULL;
 tasks = g_thread_pool_new(janus_transport_task, NULL, -1, FALSE, &error);
 
 其他操作都是围绕两个队列进行
+
+
 ```
 
 ##### 请求和任务的区别
 
-+ 请求(request)
-+ 任务(task)
+message消息会被放置任务队列中，以异步的方式回复处理结果，回复通过transaction区分。
 
 ### Janus业务处理
 
@@ -232,3 +235,6 @@ struct janus_plugin {
 };
 ```
 
+### RTP数据
+
+在处理attach命令的时候创建ice_handle对象
