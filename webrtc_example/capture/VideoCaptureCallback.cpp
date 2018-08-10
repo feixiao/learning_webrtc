@@ -72,3 +72,44 @@ void VideoCaptureCallback::OnFrame(const webrtc::VideoFrame& videoFrame) {
 void VideoCaptureCallback::OnDiscardedFrame() {
 	RTC_LOG(INFO) << __FUNCTION__;
 };
+
+
+
+int32_t VideoCaptureCallback::RecordedDataIsAvailable(const void* audioSamples,
+	const size_t nSamples,
+	const size_t nBytesPerSample,
+	const size_t nChannels,
+	const uint32_t samplesPerSec,
+	const uint32_t totalDelayMS,
+	const int32_t clockDrift,
+	const uint32_t currentMicLevel,
+	const bool keyPressed,
+	uint32_t& newMicLevel) {
+	RTC_LOG(INFO) << __FUNCTION__;
+	return 0;
+}
+
+
+int32_t VideoCaptureCallback::NeedMorePlayData(const size_t nSamples,
+	const size_t nBytesPerSample,
+	const size_t nChannels,
+	const uint32_t samplesPerSec,
+	void* audioSamples,
+	size_t& nSamplesOut,  // NOLINT
+	int64_t* elapsed_time_ms,
+	int64_t* ntp_time_ms) {
+	RTC_LOG(INFO) << __FUNCTION__;
+	return 0;
+}
+
+									
+void VideoCaptureCallback::PullRenderData(int bits_per_sample,
+	int sample_rate,
+	size_t number_of_channels,
+	size_t number_of_frames,
+	void* audio_data,
+	int64_t* elapsed_time_ms,
+	int64_t* ntp_time_ms) {
+
+	RTC_LOG(INFO) << __FUNCTION__;
+}
