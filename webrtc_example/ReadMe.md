@@ -15,6 +15,10 @@ https://pan.baidu.com/s/1bm6zUaMfA0AYhu9C6XObYg
 
 使用SDL2播放capture模块采集的数据
 
+##### AudioDeviceModule
+
+AudioDeviceModule使用例子，采集音频数据并播放
+
 #### client
 
 peerconnection_client

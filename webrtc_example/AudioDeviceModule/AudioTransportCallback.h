@@ -2,12 +2,17 @@
 
 #include "modules/audio_device/include/audio_device.h"
 #include "rtc_base/criticalsection.h"
+#include "api/audio/audio_mixer.h"
+#include "modules/audio_processing/include/audio_processing.h"
+#include <list>
 
 class AudioTransportCallback : public webrtc::AudioTransport
 {
 public:
-	AudioTransportCallback() = default;
-	~AudioTransportCallback() = default;
+	AudioTransportCallback(webrtc::AudioMixer* mixer,
+		webrtc::AudioProcessing* audio_processing);
+
+	~AudioTransportCallback();
 
 	int32_t RecordedDataIsAvailable(const void* audioSamples,
 		const size_t nSamples,
@@ -39,16 +44,18 @@ public:
 		int64_t* ntp_time_ms) override;
 
 private:
-
-	typedef uint16_t Sample;
+	rtc::CriticalSection _crit;
+	webrtc::AudioMixer* _pMixer;
+	webrtc::AudioProcessing* _pAudioProcessing;
+	typedef uint32_t Sample;
 	// The value for the following constants have been derived by running VoE
 	// using a real ADM. The constants correspond to 10ms of mono audio at 44kHz.
 	static const size_t kNumberSamples = 480;
 	static const size_t kNumberBytesPerSample = sizeof(Sample);
 
-
-	rtc::CriticalSection _crit;
 	char _rec_buffer[kNumberSamples * kNumberBytesPerSample];
 	size_t _rec_buffer_bytes = 0;
+
+	FILE* _pFile = nullptr;
 };
 
