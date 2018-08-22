@@ -4,6 +4,7 @@
 #include "rtc_base/criticalsection.h"
 #include "api/audio/audio_mixer.h"
 #include "modules/audio_processing/include/audio_processing.h"
+#include "api/audio_codecs/audio_encoder.h"
 #include <list>
 
 class AudioTransportCallback : public webrtc::AudioTransport
@@ -57,5 +58,7 @@ private:
 	size_t _rec_buffer_bytes = 0;
 
 	FILE* _pFile = nullptr;
+
+	std::unique_ptr<webrtc::AudioEncoder>  _pAudioEncoder;
 };
 

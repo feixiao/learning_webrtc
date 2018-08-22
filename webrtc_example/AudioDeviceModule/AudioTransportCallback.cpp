@@ -16,7 +16,8 @@ size_t GenerateZeroBuffer(void* audio_buffer, size_t audio_buffer_size) {
 size_t CopyFromRecBuffer(void* audio_buffer, size_t audio_buffer_size,
 	void* rec_buffer_, size_t rec_buffer_bytes_) {
 
-	const size_t min_buffer_size = std::min(audio_buffer_size, rec_buffer_bytes_);
+	const size_t min_buffer_size = std::min(audio_buffer_size, 
+		rec_buffer_bytes_);
 	memcpy(audio_buffer, rec_buffer_, min_buffer_size);
 	return min_buffer_size;
 }
