@@ -76,7 +76,9 @@ Body: sdp...
 
 
 
+#### Peerconnection交互过程
 
+![](./imgs/webrtc执行流程.png)
 
 #### 参考资料
 
