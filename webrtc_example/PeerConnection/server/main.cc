@@ -18,6 +18,7 @@
 #include "peer_channel.h"
 #include "utils.h"
 #include "simple_command_line_parser.h"
+#include "rtc_base/logging.h"
 
 static const size_t kMaxConnections = (FD_SETSIZE - 2);
 

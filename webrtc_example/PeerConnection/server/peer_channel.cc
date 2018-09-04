@@ -20,6 +20,7 @@
 #include "utils.h"
 #include "rtc_base/stringencode.h"
 #include "rtc_base/stringutils.h"
+#include "rtc_base/logging.h"
 
 using rtc::sprintfn;
 
@@ -110,11 +111,14 @@ void ChannelMember::ForwardRequestToPeer(DataSocket* ds, ChannelMember* peer) {
   std::string extra_headers(GetPeerIdHeader());
 
   if (peer == this) {
+	RTC_LOG(INFO) << "Client: " << name_.c_str() << " SDP : " << ds->data();
     ds->Send("200 OK", true, ds->content_type(), extra_headers,
              ds->data());
   } else {
     printf("Client %s sending to %s\n",
         name_.c_str(), peer->name().c_str());
+
+	RTC_LOG(INFO) << "Client: " << name_.c_str() << " SDP : " << ds->data(); 
     peer->QueueResponse("200 OK", ds->content_type(), extra_headers,
                         ds->data());
     ds->Send("200 OK", true, "text/plain", "", "");
