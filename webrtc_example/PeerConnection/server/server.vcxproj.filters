@@ -15,59 +15,43 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Resource.h">
+    <ClInclude Include="stdafx.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\conductor.h">
+    <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\defaults.h">
+    <ClInclude Include="data_socket.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\flagdefs.h">
+    <ClInclude Include="peer_channel.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\main_wnd.h">
+    <ClInclude Include="utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\peer_connection_client.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\typedefs.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\common_types.h">
+    <ClInclude Include="simple_command_line_parser.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\conductor.cc">
+    <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\defaults.cc">
+    <ClCompile Include="data_socket.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\main.cc">
+    <ClCompile Include="main.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\main_wnd.cc">
+    <ClCompile Include="peer_channel.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\peer_connection_client.cc">
+    <ClCompile Include="utils.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="client.rc">
-      <Filter>资源文件</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>资源文件</Filter>
-    </Image>
-    <Image Include="client.ico">
-      <Filter>资源文件</Filter>
-    </Image>
+    <ClCompile Include="simple_command_line_parser.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
