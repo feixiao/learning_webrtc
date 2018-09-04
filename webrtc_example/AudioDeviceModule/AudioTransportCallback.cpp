@@ -7,7 +7,7 @@
 #include "audio/utility/audio_frame_operations.h"
 #include "audio/remix_resample.h"
 #include <algorithm> 
-#include "audio/utility/audio_frame_operations.h"
+
 
 size_t GenerateZeroBuffer(void* audio_buffer, size_t audio_buffer_size) {
 	memset(audio_buffer, 0, audio_buffer_size);
@@ -46,6 +46,15 @@ int32_t AudioTransportCallback::RecordedDataIsAvailable(const void* audioSamples
 	const bool keyPressed,
 	uint32_t& newMicLevel) {
 
+
+
+	//RTC_LOG(INFO) << __FUNCTION__;
+	//RTC_LOG(INFO) << " nSamples : " << nSamples 
+	//	<< " nBytesPerSample: " << nBytesPerSample
+	//	<< " nChannels : " << nChannels
+	//	<< " samplesPerSec : " << samplesPerSec
+	//	<< " totalDelayMS : " << totalDelayMS;
+
 	RTC_DCHECK(audioSamples);
 	RTC_DCHECK_GE(nChannels, 1);
 	RTC_DCHECK_LE(nChannels, 2);
@@ -81,6 +90,11 @@ int32_t AudioTransportCallback::NeedMorePlayData(const size_t nSamples,
 		samplesPerSec,
 		static_cast<uint32_t>(webrtc::AudioProcessing::NativeRate::kSampleRate8kHz));
 
+	//RTC_LOG(INFO) << __FUNCTION__;
+	//RTC_LOG(INFO) << " nSamples : " << nSamples
+	//	<< " nBytesPerSample: " << nBytesPerSample
+	//	<< " nChannels : " << nChannels
+	//	<< " samplesPerSec : " << samplesPerSec;
 
 	rtc::CritScope cs(&_crit);
 
