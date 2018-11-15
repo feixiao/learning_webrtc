@@ -31,6 +31,6 @@ npm install  # 安装依赖项   npm install --unsafe-perm (出错情况使用�
 
 node index.js 0.0.0.0    # 默认端口8000
 
-浏览器访问 https://localhost:8000/svc/
+浏览器访问 https://localhost:8000/svc/     # 最后的"/"不要忘记
 ```
 
