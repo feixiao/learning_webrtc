@@ -51,6 +51,9 @@ export PATH=$PATH:/home/frank/webrtc/depot_tools
 export http_proxy=http://127.0.0.1:8118/
 export https_proxy=http://127.0.0.1:8118/
 wget https://cs.chromium.org/chromium/src/build/install-build-deps.sh
+
+sudo install-build-deps.sh
+sudo install-build-deps-android.sh
 ```
 
 #### 下载代码
