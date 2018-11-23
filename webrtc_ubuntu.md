@@ -35,6 +35,14 @@ A tutorial introduction to the Chromium depot_tools git extensions.
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 # 添加到环境变量
 export PATH=$PATH:/home/frank/webrtc/depot_tools
+
+1：创建boto.cfg文件
+2：配置如下内容
+	[Boto]
+	proxy=http://127.0.0.1:8118
+	proxy_port = 8118
+3: 设置环境变量NO_AUTH_BOTO_CONFIG
+    export NO_AUTH_BOTO_CONFIG=/home/frank/webrtc/boto.cfg
 ```
 
 #### 安装依赖项
@@ -50,7 +58,8 @@ wget https://cs.chromium.org/chromium/src/build/install-build-deps.sh
 ```
 mkdir webrtc_android && cd webrtc_android
 fetch --nohooks webrtc_android
-gclient sync
+gclient sync --jobs 8
+# gclient sync --nohooks --with_branch_heads
 ```
 
 #### 编译代码
