@@ -1,6 +1,14 @@
 WebRTC 
 ==================
+#### 示例运行
 
+```ssh
+git clone https://github.com/webrtc/samples.git webrtc_sample
+cd webrtc_sample
+python -m SimpleHTTPServer 
+
+访问http://localhost:8000
+```
 
 
 
