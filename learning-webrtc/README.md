@@ -1,6 +1,6 @@
-WebRTC Book Source
+WebRTC 
 ==================
-The source code for the examples presented in the book "Learning WebRTC"
+
 
 
 
@@ -12,4 +12,3 @@ The source code for the examples presented in the book "Learning WebRTC"
 - [WebRTC Web demos and samples](https://webrtc.github.io/samples/) 
 - [WebRTC-Experiment](https://github.com/muaz-khan/WebRTC-Experiment)
 - [Getting Started with WebRTC](https://www.html5rocks.com/en/tutorials/webrtc/basics/#toc-disruptive)
-
