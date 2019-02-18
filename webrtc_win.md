@@ -11,7 +11,7 @@ A tutorial introduction to the Chromium depot_tools git extensions.
   配置文件中添加如下内容：
 
   ```
-  forward-socks5 	 / 				 127.0.0.1:8118 .
+  forward-socks5 	 / 				 127.0.0.1:1080 .
   ```
 
 + 控制台设置代理
