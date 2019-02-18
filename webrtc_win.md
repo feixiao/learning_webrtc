@@ -11,14 +11,14 @@ A tutorial introduction to the Chromium depot_tools git extensions.
   配置文件中添加如下内容：
 
   ```
-  forward-socks5 	 / 				 127.0.0.1:1080 .
+  forward-socks5 	 / 				 127.0.0.1:8118 .
   ```
 
 + 控制台设置代理
 
   ```
-  set http_proxy=http://127.0.0.1:1080
-  set https_proxy=http://127.0.0.1:1080
+  set http_proxy=http://127.0.0.1:8118
+  set https_proxy=http://127.0.0.1:8118
   ```
 
 + 为depot_tools 配置代理
@@ -28,7 +28,7 @@ A tutorial introduction to the Chromium depot_tools git extensions.
   2：配置如下内容
   [Boto]
   proxy=127.0.0.1
-  proxy_port = 1080
+  proxy_port = 8118
   3: 设置环境变量NO_AUTH_BOTO_CONFIG
   set NO_AUTH_BOTO_CONFIG=F:\webrtc_project\boto.cfg
   ```
@@ -37,8 +37,8 @@ A tutorial introduction to the Chromium depot_tools git extensions.
 
 ```
 mkdir webrtc && cd webrtc
-set http_proxy=http://127.0.0.1:1080
-set https_proxy=http://127.0.0.1:1080
+set http_proxy=http://127.0.0.1:8118
+set https_proxy=http://127.0.0.1:8118
 git config --global http.proxy %http_proxy%
 git config --global https.proxy %https_proxy%
 set DEPOT_TOOLS_WIN_TOOLCHAIN 0
