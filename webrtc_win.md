@@ -39,8 +39,8 @@ A tutorial introduction to the Chromium depot_tools git extensions.
 mkdir webrtc && cd webrtc
 set http_proxy=http://127.0.0.1:8118
 set https_proxy=http://127.0.0.1:8118
-git config --global http.proxy %http_proxy%
-git config --global https.proxy %https_proxy%
+git config --global http.proxy http://127.0.0.1:8118
+git config --global https.proxy http://127.0.0.1:8118
 set DEPOT_TOOLS_WIN_TOOLCHAIN 0
 set NO_AUTH_BOTO_CONFIG=F:\webrtc_project\boto.cfg
 set GYP_GENERATORS=msvs-ninja,ninja 
