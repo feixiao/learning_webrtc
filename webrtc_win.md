@@ -41,7 +41,8 @@ set http_proxy=http://127.0.0.1:8118
 set https_proxy=http://127.0.0.1:8118
 git config --global http.proxy http://127.0.0.1:8118
 git config --global https.proxy http://127.0.0.1:8118
-set DEPOT_TOOLS_WIN_TOOLCHAIN 0
+set DEPOT_TOOLS_WIN_TOOLCHAIN=0
+set DEPOT_TOOLS_UPDATE=0
 set NO_AUTH_BOTO_CONFIG=F:\webrtc_project\boto.cfg
 set GYP_GENERATORS=msvs-ninja,ninja 
 set GYP_MSVS_VERSION=2017
