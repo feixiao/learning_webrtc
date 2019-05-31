@@ -9,9 +9,7 @@
 #### Webrtc前端
 
 + [learning-webrtc](./learning-webrtc)
-+ [<<Visual Studio Code必备前端插件>>](https://www.cnblogs.com/huanghuali/p/9525153.html)
-+ [webrtc samples](https://github.com/webrtc/samples)
-+ [webrtc/adapter](https://github.com/webrtc/adapter)
++ [大前端](https://github.com/feixiao/Web)
 
 #### Webrtc服务器
 
