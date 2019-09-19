@@ -21,7 +21,7 @@ package.json
 
 "medooze-media-server": "^0.27.2",
 修改为
-"medooze-media-server": "^0.43.1",
+"medooze-media-server": "^0.43.1",  #这个版本号去https://github.com/medooze/media-server-node/releases下面找
 ```
 
 
