@@ -7,6 +7,9 @@
 ```shell
 mkdir -p ./dist/libs/linux64
 find . -type f -name "*.a"  | xargs -i  cp -f {} ./dist/libs/linux64
+
+# OSX
+find . -type f -name "*.a"  | xargs  -n1 -I F cp "F"./dist/libs/osx
 ```
 
 #### 整理头文件
