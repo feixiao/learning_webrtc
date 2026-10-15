@@ -3,7 +3,7 @@
 
 port: 7880
 bind_addresses:
-  - "127.0.0.1"
+  - "0.0.0.0"
 
 # 鉴权密钥 (用于客户端 Token 生成与 Agent Worker 鉴权)
 keys:

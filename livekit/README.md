@@ -53,12 +53,15 @@ docker run --rm -it \
    - 极速推荐：`Qwen/Qwen2.5-14B-Instruct-GGUF`（Q8_0）；
    - 深度思考：`Qwen/Qwen2.5-32B-Instruct-GGUF`（Q8_0 或 Q6_K）；
 3. **GPU 显存卸载**：在右侧面板将 `GPU Offload` 拉满（Max）；
-4. **启动服务**：切换到左侧 **`Developer`（Local Server）** 面板，点击 **Start Server**（默认监听端口 `http://127.0.0.1:1234`）；
+4. **关键网络设置（若使用 Docker 必看）**：
+   - 切换到左侧 **`Developer`（Local Server）** 面板；
+   - **重要**：如果任何组件在 Docker 容器中运行，必须勾选 **`Serve on local network`**（即监听 `0.0.0.0`，允许外部/虚拟网络接入）；
+   - 若仅在 Mac 原生宿主机直接运行 Python Agent，则保持默认 `127.0.0.1` 即可；
+   - 点击 **Start Server**（默认监听端口 `1234`）；
 5. 验证服务是否存活：
    ```bash
    curl http://127.0.0.1:1234/v1/models
    ```
-
 ---
 
 ## 4. 第三步：配置并启动 Agent Worker
@@ -103,7 +106,54 @@ python agent.py dev
 
 ---
 
-## 6. 常见问题与排错自检
+## 6. Docker 跨网络调用宿主机 LM Studio 的陷阱与最佳实践
+
+如果你考虑将 **Agent 也打包放进 Docker 容器**，连接宿主机 Mac 上的 LM Studio 会面临两个致命的网络坑：
+
+```
+【常见错误陷阱】
+┌────────────────────────────────────────────────────────┐
+│  Docker Container (Agent Worker)                       │
+│  请求 http://127.0.0.1:1234 ❌ (找的是容器自己，非 Mac)    │
+└───────────────────────┬────────────────────────────────┘
+                        │ 无法穿透
+┌───────────────────────▼────────────────────────────────┐
+│  Mac 宿主机 (LM Studio Server)                           │
+│  若只监听 127.0.0.1 ❌ (Docker VM 的请求来源 IP 会被拒绝)   │
+└────────────────────────────────────────────────────────┘
+```
+
+### 陷阱 1：容器内的 `127.0.0.1` 指向容器自身
+* 在 Docker 容器内部，`127.0.0.1` 或 `localhost` 是容器的隔离回环接口，根本找不到宿主机 Mac 上运行的程序。
+* **解决方案**：在 macOS Docker Desktop 环境下，必须使用专属网关域名：
+  ```bash
+  # 容器内部连接宿主机 LM Studio 的正确地址：
+  http://host.docker.internal:1234/v1
+  ```
+
+### 陷阱 2：LM Studio 默认仅监听本地 Loopback
+* LM Studio 默认安全策略只绑定宿主机的 `127.0.0.1`。
+* 由于 macOS 下 Docker 运行在轻量级 Linux 虚拟机（Hypervisor）中，容器对宿主机的请求会被宿主机视作来自虚拟网卡（如 `192.168.65.x`）的“外部网络请求”直接拒连（Connection Refused）。
+* **解决方案**：在 LM Studio 左侧 Local Server 设置中，**必须开启 “Serve on local network” 开关**（绑定到 `0.0.0.0`）。
+
+### 陷阱 3：配置文件 `livekit.yaml` 绑定地址
+* 运行在 Docker 里的 LiveKit Server，其配置文件 `livekit.yaml` 中的 `bind_addresses` **必须配置为 `0.0.0.0`**，若写成 `127.0.0.1` 会导致宿主机的 `-p 7880:7880` 端口映射彻底失效。*(当前仓库配置已修复为 `0.0.0.0`)*。
+
+---
+
+## 7. 最佳部署架构推荐（为什么推荐原生运行 Agent？）
+
+| 方案 | 架构说明 | 性能与延迟 | 推荐指数 |
+| :--- | :--- | :---: | :---: |
+| **方案 A（最佳推荐）** | **LiveKit Server (Docker/Brew) + Agent (Mac 原生 Python) + LM Studio (Mac 原生)** | **极佳 ($<1\text{ms}$ 进程间开销)** | ⭐⭐⭐⭐⭐ |
+| **方案 B** | **全部塞进 Docker（Agent 跨桥访问宿主机 LM Studio）** | 较慢（多一层 Docker VM 虚拟网卡转发与地址映射，偶有丢包） | ⭐⭐ |
+
+> **工程建议**：  
+> 媒体服务器 LiveKit Server 用 Docker 跑非常方便且干净；但 **Agent Worker 与 LM Studio 强烈建议直接在 Mac 宿主机原生运行**。因为 M4 Max 的核心优势是 128G 统一内存与原生 Metal 硬件直连，原生运行完全没有 Docker 虚拟化网络开销，延迟最低，调试也最为丝滑。
+
+---
+
+## 8. 常见问题与排错自检
 
 ### 1. 为什么浏览器显示连接失败？
 * 确认 `livekit-server` 正在前台运行，且端口 `7880` 没有被其他进程占用；
