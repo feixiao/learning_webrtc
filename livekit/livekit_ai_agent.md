@@ -481,18 +481,22 @@ flowchart LR
     SFU ==> ClientView
 ```
 
-#### 代表性方案与项目：
-* **Simli（商业极速流式数字人 API，仅客户端 SDK 开源）**：
-  * **注意**：Simli 的核心面部渲染模型和底层推理服务是**闭源的商业 SaaS/API 服务**（按分钟计费），其 GitHub 开源的只是对接 LiveKit / OpenAI Realtime 的客户端 SDK（如 `simli-client-py`）与 Demo 脚手架。
-  * **核心指标**：音频 PCM 到 H.264 首帧画面延迟控制在 **100ms ~ 200ms**，提供原生 WebRTC 双向推拉流能力，支持实时打断。
-* **Tavus (Phoenix-2 Conversational Video)**：
-  * 闭源商业 API，目前行业内逼真度顶尖的端到端全双工视频对话服务（延迟约 500~800ms），支持精细微表情、头部三维晃动与视线追踪。
-* **HeyGen Interactive Avatar**：
-  * 闭源商业数字人，支持 4K 高清流下发，主要落地于线下展厅大屏互动与导览机。
-* **真正的开源实时自建方案（自研/私有化）**：
-  * **Linly-Talker / OpenAvatar**：社区最活跃的开源数字人交互项目，打通了 ASR + LLM + TTS + 实时视频驱动 + WebRTC 链路。
-  * **ER-NeRF / RAD-NeRF / GeneFace++**：基于神经辐射场的极速面部驱动模型，单卡 RTX 3090/4090 配合 TensorRT 优化后可实现 $>40\text{ fps}$ 的实时端到端流式渲染。
-  * **Wav2Lip / LivePortrait (魔改流式版)**：常用于 2D 照片驱动，需配合 ONNX/TensorRT 做算子融合才能压进 30ms 实时帧预算。
+#### 核心落地路径与技术选型（避开“伪实时”陷阱）：
+
+在实际调研中，诸如 **Linly-Talker** 等许多知名开源项目本质上是 **Gradio 离线批处理拼接**（整句识别 $\to$ 整段生成 $\to$ 离线渲染 MP4 文件 $\to$ 前端播放，延迟高达 15~30+ 秒），**根本无法用于全双工实时通话**。真正的实时视频交互只有以下两条工程路径：
+
+* **路径 A：商业闭源流式数字人 API（免维护，按分钟付费）**：
+  * **Simli**：专为 Voice Agent 打造，音频 PCM 到 H.264 首帧画面延迟约 **100~200ms**，提供官方 LiveKit 适配层（仅客户端开源，后端模型闭源）；
+  * **Tavus (Phoenix-2)**：端到端视频全双工对话，面部微表情与三维头部动作逼真度极高（延迟 500~800ms）。
+
+* **路径 B：开源轻量化首选 —— Audio2Blendshape + 客户端端渲染（企业级量产推荐）**：
+  * **架构逻辑**：服务端**不渲染视频像素、不推视频流**。服务端仅运行极轻量模型（如 **NVIDIA Audio2Face** 或开源 Audio-to-BS ONNX，耗时 $<2\text{ms}$）将 TTS 音频转为 **ARKit 52 维面部 Blendshape 浮点数组**；
+  * **传输与渲染**：音频走 WebRTC 音频轨，Blendshape 走 WebRTC DataChannel 广播；客户端（浏览器 WebGL/Three.js、Unity 或 Live2D）在本地直接驱动 3D/2D 虚拟形象；
+  * **核心优势**：单台低配服务器可承载数百路并发，算力成本直降 95%，且打断时待机过渡天然丝滑。
+
+* **路径 C：开源像素级流式推流（以 `lipku/LiveTalking` + ER-NeRF 为代表）**：
+  * **架构逻辑**：服务端跑特定人物的 **ER-NeRF / RAD-NeRF**（Instant-NGP 哈希表），单帧推理约 $15\sim 25\text{ms}$，通过 `aiortc` 实时打包装帧为 H.264 WebRTC 视频流推给客户端；
+  * **局限性**：无法单图零样本驱动，需提前针对单人录制训练几分钟视频；单卡 4090 仅能支撑 2~3 路并发，硬件成本高昂。
 ### 10.3 视频 Agent 核心工程挑战与架构解法
 
 | 挑战维度 | 音频 Agent（已实现） | 视频 Agent（引入视觉） | 核心工程落地解法 |
@@ -508,6 +512,6 @@ flowchart LR
    - **模型选型**：公有云优先选择 **Gemini-1.5-Flash**（流式多模态首包延迟短），私有化推荐 **Qwen2-VL-7B (AWQ/4-bit)**；
    - **动态抽帧策略**：日常静止状态降采样至 $0.5\text{ FPS}$ 维持记忆缓冲；VAD 命中用户开口说话瞬间截取高清晰度关键帧作为问答 Prompt 上下文。
 2. **输出端（Interactive Avatar 实时数字人）**：
-   - **云端商业 API（免运维，体验丝滑）**：首选 **Simli**（低延迟最佳）或 **Tavus**（拟真度最佳）；
-   - **纯本地/私有化开源方案**：首选参考 **Linly-Talker** 架构，底层采用 **ER-NeRF** 或 **Wav2Lip + TensorRT** 部署于 GPU 节点；
-   - **发布集成**：Agent/渲染服务将生成的 H.264 视频帧作为 `rtc.LocalVideoTrack` 发布至 LiveKit 房间，客户端以标准 `<video>` 标签同步播放音轨与视轨。
+   - **商业 API 路线**：首选 **Simli**（极速流式推流，对接 LiveKit 容易）；
+   - **低成本高并发量产路线（强烈推荐）**：**Audio-to-Blendshape + 客户端 WebGL (Three.js/ReadyPlayerMe)**，服务端只发音频 + DataChannel 骨骼数据；
+   - **自建像素流推流路线**：参考开源 **`lipku/LiveTalking` + ER-NeRF** 方案（单卡 RTX 4090 部署）。
