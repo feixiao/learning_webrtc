@@ -1,0 +1,20 @@
+# LiveKit Server 本地开发测试配置文件
+# 适用于 macOS / Linux 本地开发环境
+
+port: 7880
+bind_addresses:
+  - "127.0.0.1"
+
+# 鉴权密钥 (用于客户端 Token 生成与 Agent Worker 鉴权)
+keys:
+  devkey: "secret"
+
+# 媒体配置
+rtc:
+  # 单端口 UDP (RFC 7983 分流)，避免开放大段动态 UDP 端口
+  udp_port: 7882
+  tcp_port: 7881
+  use_external_ip: false
+
+logging:
+  level: info

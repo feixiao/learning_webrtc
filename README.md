@@ -15,6 +15,7 @@
 
 + [janus-gateway](./janus-gateway)
 + [medooze](./medooze)
++ [livekit (本地部署与 AI Agent 测试)](./livekit)
 + [LiveKit AI Agent 实时语音流转与处理全链路深度拆解](./livekit_ai_agent.md)
 
 ### 3.1 核心维度技术矩阵横向对照（三大体系）
