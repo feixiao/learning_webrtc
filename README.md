@@ -15,8 +15,7 @@
 
 + [janus-gateway](./janus-gateway)
 + [medooze](./medooze)
-+ [livekit (本地部署与 AI Agent 测试)](./livekit)
-+ [LiveKit AI Agent 实时语音流转与处理全链路深度拆解](./livekit_ai_agent.md)
++ [livekit (本地部署、AI Agent 测试与全链路架构)](./livekit)
 
 ### 3.1 核心维度技术矩阵横向对照（三大体系）
 | 维度 | Janus Gateway | SRS (5.0 ~ 7.0) | Pion (以 LiveKit 为代表) | 选型权衡与工业思考 |
@@ -44,45 +43,6 @@
 - **物理账本约束**：  
   多节点流转不仅增加 15~35ms 骨干网跳数延迟，更致命的是网络抖动累加导致接收端 JitterBuffer 水位被迫拉大 20~50ms，瞬间击穿 200ms 的实时互动 SLA，且机房带宽呈 $N^2$ 爆炸。因此在互动会议中，“同房间单机强收拢”是唯一符合工程 ROI 的最优解。
 
-### 3.4 LiveKit AI Agent 实时语音与多模态架构解析
-
-#### 1. 为什么 AI 实时语音/多模态首选 LiveKit？
-- **传统 HTTP/WebSocket 的局限**：全双工但不具备 UDP 弱网 QoS（无 NACK、FEC、JitterBuffer 自适应），高丢包下延迟剧增；TCP 队头阻塞导致音频卡顿；缺乏原生的声学回声消除（AEC）与网络穿透（ICE/STUN/TURN）。
-- **LiveKit 的核心优势**：
-  - **Worker Pool 调度模型**：将 Agent 建模为房间内的一个特殊 Participant（参与者），LiveKit SFU 原生集成 Job Dispatcher，用户进房时毫秒级拉起或分配空闲的 Agent Worker，天然适配 K8s Pod 扩缩容。
-  - **全链路极低延迟**：基于 WebRTC 原生传输，端到端延迟控制在 300ms ~ 800ms 内，满足真人对话的沉浸感（人类对话停顿感知阈值约为 300~500ms）。
-  - **OpenAI 官方首选底座**：OpenAI 官方 Realtime API 的 WebRTC 落地范式与参考实现均深度绑定 LiveKit 生态。
-
-#### 2. 核心架构模式（Dual Pipelines）
-```mermaid
-flowchart TD
-    User[客户端 / 手机 / 浏览器] <==> |WebRTC 音视频 RTP| SFU[LiveKit SFU 节点]
-    SFU <==> |内部媒体桥接| Agent[LiveKit Agent Worker]
-
-    subgraph Cascaded[模式 A: 级联流水线 Cascaded Pipeline]
-        Agent --> VAD[Silero VAD 语音活性检测]
-        VAD --> STT[Streaming STT: Deepgram / Whisper]
-        STT --> LLM[Streaming LLM: OpenAI / Claude / Groq]
-        LLM --> TTS[Streaming TTS: Cartesia / ElevenLabs]
-        TTS --> Agent
-    end
-
-    subgraph E2E[模式 B: 端到端全双工模型 S2S Pipeline]
-        Agent <==> |双向流式音频 / 视频帧| S2SModel[OpenAI Realtime API / GPT-Live / Gemini Live]
-    end
-```
-
-#### 3. 实时交互的关键工程难题与解决策略
-- **毫秒级打断处理（Barge-in / Interruption）**：
-  - 用户一旦开口，本地/服务端 VAD 必须在 50~100ms 内检出语音活性；
-  - Agent Worker 立即向 LLM/TTS 发送 Cancel 信号截断未完成的生成，并向 WebRTC 发送包清空正在播放的 Playout Buffer，实现“秒停秒应”，杜绝回音干扰与废话重叠。
-- **声学回声消除（AEC）与防自激**：
-  - AI Agent 自身的输出音频容易被麦克风二次拾取误判为用户打断（Double-talk）。LiveKit 结合 WebRTC 毫秒级时间戳对齐与端侧/网关级 AEC 滤波，精准剥离 Agent 自身伴奏。
-- **全双工多模态拓展（Vision & DataChannel）**：
-  - **实时视觉理解**：客户端通过 WebRTC 视频轨上行摄像头画面，Agent 按需抽帧送入视觉大模型做实时画面解析；
-  - **信令与状态同步**：转写字幕（Transcription）、思考状态（Thinking/Speaking）通过 WebRTC DataChannel 亚毫秒级广播至客户端 UI。
-- **电信级电话网打通（SIP Gateway）**：
-  - LiveKit 官方提供开箱即用的 SIP Ingress/Egress 组件，可直接接入 Twilio、FreeSWITCH 或电信运营商 PSTN 中继，使得 AI Agent 能直接接听电话或外呼客户。
 ## 4. SFU 测试工具
 
 

@@ -9,6 +9,7 @@
 ```
 livekit/
 ├── README.md           # 本地部署与联调测试完整指南
+├── livekit_ai_agent.md # LiveKit AI Agent 实时语音与多模态数据流流转架构深度拆解
 ├── livekit.yaml        # LiveKit Server 本地开发配置文件
 ├── agent.py            # 支持本地 LM Studio 的全双工语音 Agent 测试脚本
 └── requirements.txt    # Python Agent 运行所需依赖
@@ -16,7 +17,51 @@ livekit/
 
 ---
 
-## 2. 第一步：安装并启动 LiveKit Server
+## 2. LiveKit AI Agent 实时语音与多模态架构解析
+
+### 2.1 为什么 AI 实时语音/多模态首选 LiveKit？
+- **传统 HTTP/WebSocket 的局限**：全双工但不具备 UDP 弱网 QoS（无 NACK、FEC、JitterBuffer 自适应），高丢包下延迟剧增；TCP 队头阻塞导致音频卡顿；缺乏原生的声学回声消除（AEC）与网络穿透（ICE/STUN/TURN）。
+- **LiveKit 的核心优势**：
+  - **Worker Pool 调度模型**：将 Agent 建模为房间内的一个特殊 Participant（参与者），LiveKit SFU 原生集成 Job Dispatcher，用户进房时毫秒级拉起或分配空闲的 Agent Worker，天然适配 K8s Pod 扩缩容。
+  - **全链路极低延迟**：基于 WebRTC 原生传输，端到端延迟控制在 300ms ~ 800ms 内，满足真人对话的沉浸感（人类对话停顿感知阈值约为 300~500ms）。
+  - **OpenAI 官方首选底座**：OpenAI 官方 Realtime API 的 WebRTC 落地范式与参考实现均深度绑定 LiveKit 生态。
+
+### 2.2 核心架构模式（Dual Pipelines）
+```mermaid
+flowchart TD
+    User[客户端 / 手机 / 浏览器] <==> |WebRTC 音视频 RTP| SFU[LiveKit SFU 节点]
+    SFU <==> |内部媒体桥接| Agent[LiveKit Agent Worker]
+
+    subgraph Cascaded[模式 A: 级联流水线 Cascaded Pipeline]
+        Agent --> VAD[Silero VAD 语音活性检测]
+        VAD --> STT[Streaming STT: Deepgram / Whisper]
+        STT --> LLM[Streaming LLM: OpenAI / Claude / Groq]
+        LLM --> TTS[Streaming TTS: Cartesia / ElevenLabs]
+        TTS --> Agent
+    end
+
+    subgraph E2E[模式 B: 端到端全双工模型 S2S Pipeline]
+        Agent <==> |双向流式音频 / 视频帧| S2SModel[OpenAI Realtime API / GPT-Live / Gemini Live]
+    end
+```
+
+### 2.3 实时交互的关键工程难题与解决策略
+- **毫秒级打断处理（Barge-in / Interruption）**：
+  - 用户一旦开口，本地/服务端 VAD 必须在 50~100ms 内检出语音活性；
+  - Agent Worker 立即向 LLM/TTS 发送 Cancel 信号截断未完成的生成，并向 WebRTC 发送包清空正在播放的 Playout Buffer，实现“秒停秒应”，杜绝回音干扰与废话重叠。
+- **声学回声消除（AEC）与防自激**：
+  - AI Agent 自身的输出音频容易被麦克风二次拾取误判为用户打断（Double-talk）。LiveKit 结合 WebRTC 毫秒级时间戳对齐与端侧/网关级 AEC 滤波，精准剥离 Agent 自身伴奏。
+- **全双工多模态拓展（Vision & DataChannel）**：
+  - **实时视觉理解**：客户端通过 WebRTC 视频轨上行摄像头画面，Agent 按需抽帧送入视觉大模型做实时画面解析；
+  - **信令与状态同步**：转写字幕（Transcription）、思考状态（Thinking/Speaking）通过 WebRTC DataChannel 亚毫秒级广播至客户端 UI。
+- **电信级电话网打通（SIP Gateway）**：
+  - LiveKit 官方提供开箱即用的 SIP Ingress/Egress 组件，可直接接入 Twilio、FreeSWITCH 或电信运营商 PSTN 中继，使得 AI Agent 能直接接听电话或外呼客户。
+
+> 📖 **进阶深度解析**：关于流数据从麦克风 PCM 到 RTP，在 Agent 内部重采样、分词切片与 20ms 硬件节拍打包回传的底层工程细节，详见 **[LiveKit AI Agent 实时语音流转与处理全链路深度拆解](./livekit_ai_agent.md)**。
+
+---
+
+## 3. 安装并启动 LiveKit Server
 
 ### 方式 A：macOS Homebrew 原生安装（推荐）
 ```bash
@@ -46,7 +91,7 @@ docker run --rm -it \
 
 ---
 
-## 3. 第二步：启动本地 LM Studio（大模型大脑）
+## 4. 启动本地 LM Studio（大模型大脑）
 
 1. 打开 **LM Studio**；
 2. 加载适配 Apple Silicon 的模型：
@@ -64,7 +109,7 @@ docker run --rm -it \
    ```
 ---
 
-## 4. 第三步：配置并启动 Agent Worker
+## 5. 配置并启动 Agent Worker
 
 ### 1. 创建 Python 虚拟环境并安装依赖
 ```bash
@@ -89,7 +134,7 @@ python agent.py dev
 
 ---
 
-## 5. 第四步：浏览器端实测全双工对话
+## 6. 浏览器端实测全双工对话
 
 打开任意支持 WebRTC 的浏览器：
 
@@ -106,7 +151,7 @@ python agent.py dev
 
 ---
 
-## 6. Docker 跨网络调用宿主机 LM Studio 的陷阱与最佳实践
+## 7. Docker 跨网络调用宿主机 LM Studio 的陷阱与最佳实践
 
 如果你考虑将 **Agent 也打包放进 Docker 容器**，连接宿主机 Mac 上的 LM Studio 会面临两个致命的网络坑：
 
@@ -141,7 +186,7 @@ python agent.py dev
 
 ---
 
-## 7. 最佳部署架构推荐（为什么推荐原生运行 Agent？）
+## 8. 最佳部署架构推荐（为什么推荐原生运行 Agent？）
 
 | 方案 | 架构说明 | 性能与延迟 | 推荐指数 |
 | :--- | :--- | :---: | :---: |
@@ -153,7 +198,7 @@ python agent.py dev
 
 ---
 
-## 8. 常见问题与排错自检
+## 9. 常见问题与排错自检
 
 ### 1. 为什么浏览器显示连接失败？
 * 确认 `livekit-server` 正在前台运行，且端口 `7880` 没有被其他进程占用；
