@@ -425,3 +425,86 @@ if __name__ == "__main__":
 2. **打断即时熔断（Barge-in Truncation）**：用户插话打断时立即取消生成协程并切断 TTS 管道，避免生成废弃音频，节省 **15%~20%** 的 TTS 与 LLM 输出计费。
 3. **上下文滑动窗口与摘要**：仅保留最近 3~5 轮完整对话，早期对话做轻量流式摘要，防止 Prompt Tokens 随通话时长膨胀。
 4. **分级模型路由（Hierarchical Routing）**：简单意图及状态反馈由轻量小模型直接处理，复杂任务再路由至主大模型。
+
+---
+
+## 10. 多模态视频与数字人（Video AI Agent）优秀案例与架构设计
+
+在实时语音 Agent 跑通后，引入 **视频（Video）多模态流** 可将交互由“听觉交流”升级为具备“眼、脑、耳、口”全要素协同的具身智能。目前在工业界与开源社区中，主要演化出两大核心形态：**视觉理解（Vision-In）** 与 **实时数字人互动（Video-Out）**。
+
+### 10.1 视觉理解类标杆场景（Vision-In：实时画面感知与协同）
+
+Agent 作为“观察者/助手”，实时消费用户的 WebRTC 摄像头流或屏幕共享流，实现“边看、边想、边聊”：
+
+1. **现场故障检修与工业远程 AR 指引（Remote AR Guidance）**：
+   * **业务模式**：用户使用手机对准汽车发动机舱、工厂配电柜或受损设备；Agent 实时捕获视频帧并结合语音提示操作（如“请看你右手边红色旋钮，顺时针旋转 90 度”）。
+   * **空间交互拓展**：Agent 不仅输出语音，还通过 WebRTC DataChannel 实时回传目标在画面中的归一化坐标 `[ymin, xmin, ymax, xmax]`，客户端 UI 动态绘制高亮方框或 AR 箭头标定物理元器件。
+2. **屏幕协同与代码/文档审阅（Screen Share Vision Agent）**：
+   * **业务模式**：用户在 WebRTC 房间中开启屏幕共享（IDE 代码、Figma 设计图或财务报表）；当用户提问“这里第 42 行为什么抛出空指针？”时，Agent 自动关联屏幕截帧与上下文代码实时解答。
+   * **价值**：免去繁琐的文字复制粘贴与上下文铺垫，实现零阻力的结对协作。
+3. **多模态考官与面试/汇报测评（Multimodal Interviewer）**：
+   * **业务模式**：不仅转写回答内容，还结合视觉流实时分析候选人的**面部微表情、视线注视点（Gaze Tracking）及体态动作**，面试结束后输出综合能力与心理状态分析报告。
+
+### 10.2 实时数字人互动类（Video-Out：超低延迟音视频双向通话）
+
+将 Agent 输出的 TTS 音频流实时驱动为 30fps 的高保真数字人视频流，使用户获得面对面视频通话的沉浸感：
+
+```mermaid
+flowchart LR
+    subgraph Input["用户侧输入 (WebRTC)"]
+        UserMic["麦克风音频流"]
+        UserCam["可选摄像头画面"]
+    end
+
+    subgraph AgentCore["LiveKit Agent 核心管道"]
+        VAD["VAD + STT"]
+        Brain["LLM / VLM 认知决策"]
+        TTSStream["流式 TTS (PCM Chunks)"]
+    end
+
+    subgraph AvatarEngine["极速数字人推流引擎 (GPU)"]
+        LipSync["实时唇形驱动 (Wav2Lip / LivePortrait)"]
+        Render["面部神经渲染 (<25ms/帧)"]
+        Encoder["NVENC H.264 硬件编码"]
+    end
+
+    subgraph Playback["WebRTC 房间与渲染"]
+        SFU["LiveKit SFU 节点"]
+        ClientView["客户端 30fps 音画同步播放"]
+    end
+
+    UserMic --> VAD --> Brain --> TTSStream
+    UserCam -.-> Brain
+    TTSStream --> LipSync --> Render --> Encoder
+    TTSStream ==> |"Audio RTP"| SFU
+    Encoder ==> |"Video RTP (30fps)"| SFU
+    SFU ==> ClientView
+```
+
+#### 代表性方案与项目：
+* **Simli（开源极速交互数字人）**：
+  * 专为 Voice Agent 优化的超轻量人脸流式渲染引擎，原生与 LiveKit / Daily 深度打通。
+  * **核心指标**：音频 PCM 到 H.264 首帧画面延迟控制在 **100ms ~ 200ms**，支持实时插话打断（被打断时瞬时闭嘴并切换至倾听待机姿态）。
+* **Tavus (Phoenix-2 Conversational Video)**：
+  * 支持端到端全双工实时视频对话的商业 API（端到端交互延迟约 500~800ms）。
+  * 具备面部微表情、自然头部三维晃动与视线对齐，常用于虚拟医生问诊、私行业务顾问。
+* **HeyGen Interactive Avatar**：
+  * 支持 4K 超高清数字人推流，主要落地于线下展厅大屏互动、酒店大堂导览。
+
+### 10.3 视频 Agent 核心工程挑战与架构解法
+
+| 挑战维度 | 音频 Agent（已实现） | 视频 Agent（引入视觉） | 核心工程落地解法 |
+| :--- | :--- | :--- | :--- |
+| **数据吞吐量** | Opus 仅需 $24\sim 32\text{ kbps}$ | 1080p@30fps 需 $2 \sim 4\text{ Mbps}$ | Agent 内部无需解码全量 30fps，只在需要时捕获关键帧 |
+| **模型推理瓶颈** | STT/LLM 吞吐可达数十 Tokens/s | 多模态大模型单帧推理需 $150 \sim 400\text{ms}$ | **动静解耦抽帧机制**（平时 0.5~1 FPS 保留感知，检测到动作突变/VAD 触发时抓取单张高清帧） |
+| **音画同步 (A/V Sync)** | 仅需关注音频时钟（960 samples/tick） | 数字人下发时极易音画不同步 | 利用 RTP Timestamp 单调递增与 RTCP 报文协同，严格对齐 PCM 块与渲染帧 |
+| **算力与成本** | 单核 CPU + 本地模型即可跑通 | 视频解码 + 神经渲染需强 GPU（L4 / 4090） | 采用分布式分离架构：LiveKit SFU 管路由，GPU 算力集群跑渲染与推理 |
+
+### 10.4 快速落地技术选型建议
+1. **输入端（Vision Agent 边看边聊）**：
+   - **接入组件**：使用 LiveKit Python SDK 的 `rtc.VideoStream(track)` 异步拉帧；
+   - **模型选型**：公有云优先选择 **Gemini-1.5-Flash**（流式多模态首包延迟短），私有化推荐 **Qwen2-VL-7B (AWQ/4-bit)**；
+   - **动态抽帧策略**：日常静止状态降采样至 $0.5\text{ FPS}$ 维持记忆缓冲；VAD 命中用户开口说话瞬间截取高清晰度关键帧作为问答 Prompt 上下文。
+2. **输出端（Interactive Avatar 实时数字人）**：
+   - **开源推荐**：**Simli** 或 **LivePortrait**；
+   - **发布集成**：Agent 将 TTS 生成的 PCM 同步泵入数字人渲染容器，编码后的 H.264 流通过 `rtc.LocalVideoTrack` 发布至房间，客户端以标准 `<video>` 标签同步播放音轨与视轨。
