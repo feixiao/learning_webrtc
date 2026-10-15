@@ -15,6 +15,7 @@
 
 + [janus-gateway](./janus-gateway)
 + [medooze](./medooze)
++ [LiveKit AI Agent 实时语音流转与处理全链路深度拆解](./livekit_ai_agent.md)
 
 ### 3.1 核心维度技术矩阵横向对照（三大体系）
 | 维度 | Janus Gateway | SRS (5.0 ~ 7.0) | Pion (以 LiveKit 为代表) | 选型权衡与工业思考 |
