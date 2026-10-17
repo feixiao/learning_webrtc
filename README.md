@@ -1,9 +1,7 @@
 # webrtc
 ## 1. 代码编译
-+ [windows下面编译webrtc](./webrtc_win.md)
-+ [ubuntu下面编译webrtc android版本](./webrtc_android.md)
-+ [学与思镜像](https://github.com/webrtc-mirror/mirror)
-+ [声网镜像](https://webrtc.org.cn/mirror/)
++ [跨平台 WebRTC C++ 二进制封装库: webrtc-sdk/libwebrtc 解析与选型](./libwebrtc.md)
++ [Google WebRTC 官方主仓库 (Native C++)](https://webrtc.googlesource.com/src)
 
 
 ## 2. WebRTC 前端
