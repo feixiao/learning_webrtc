@@ -1,70 +1,80 @@
 """
-LiveKit Voice AI Agent 本地测试脚本
-适用环境: macOS (M4 Max) / Linux 本地部署
-支持后端: LM Studio (默认监听 http://127.0.0.1:1234/v1)
+LiveKit Voice AI Agent - Google Gemini Live API
+基于 LiveKit Agents 1.x 架构与 Google Gemini Live (Speech-to-Speech) 端到端全双工实时语音模型。
 """
 
-import asyncio
 import os
 import logging
-from livekit import agents, rtc
-from livekit.agents import JobContext, WorkerOptions, cli
-from livekit.plugins import silero, openai
+from dotenv import load_dotenv
 
-# 配置日志输出
+from livekit import agents
+from livekit.agents import AgentServer, AgentSession, Agent
+from livekit.plugins import google, silero
+
+# 优先读取 .env.local，其次读取 .env
+load_dotenv(".env.local")
+load_dotenv(".env")
+
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("local-agent")
+logger = logging.getLogger("gemini-audio-agent")
 
-# 本地 LM Studio 配置参数
-LM_STUDIO_URL = os.getenv("LM_STUDIO_URL", "http://127.0.0.1:1234/v1")
-LM_STUDIO_MODEL = os.getenv("LM_STUDIO_MODEL", "qwen2.5-14b-instruct")
+# 检查 Google API Key
+google_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not google_api_key:
+    logger.warning("未检测到 GOOGLE_API_KEY 或 GEMINI_API_KEY 环境变量，请在 .env.local 或终端中配置！")
 
-async def entrypoint(ctx: JobContext):
-    logger.info(f"正在加入房间: {ctx.room.name} ...")
-    await ctx.connect()
-    logger.info("已成功接入 LiveKit SFU 媒体房间！")
+# 实例化语音助手角色定义
+class GeminiVoiceAssistant(Agent):
+    def __init__(self) -> None:
+        super().__init__(
+            instructions=(
+                "你是一个友善、专业且反应迅速的 AI 语音助手。"
+                "请使用自然口语化的中文与用户交流，回答要精炼简洁，适合语音实时播报。"
+            )
+        )
 
-    # 1. 加载本地 Silero VAD (用于毫秒级语音活性检测与打断判决)
-    vad = silero.VAD.load()
+# 创建 LiveKit Agent 服务
+server = AgentServer()
 
-    # 2. 对接本地运行的 LM Studio 作为核心对话大脑 (流式 Token 响应)
-    llm = openai.LLM(
-        base_url=LM_STUDIO_URL,
-        api_key="lm-studio",                  # 本地无鉴权，填任意占位符
-        model=LM_STUDIO_MODEL,
+@server.rtc_session(agent_name="gemini-audio-agent")
+async def rtc_session(ctx: agents.JobContext):
+    logger.info(f"正在接入房间: {ctx.room.name} ...")
+
+    # 1. 配置 Gemini Live 端到端实时语音模型 (S2S: Speech-to-Speech)
+    # 支持模型包括: gemini-2.5-flash-native-audio-preview-12-2025, gemini-3.8-live 等
+    gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-native-audio-preview-12-2025")
+    gemini_voice = os.getenv("GEMINI_VOICE", "Puck")  # 可选声音: Puck, Charon, Kore, Fenrir, Aoede
+
+    realtime_model = google.realtime.RealtimeModel(
+        model=gemini_model,
+        api_key=google_api_key,
+        voice=gemini_voice,
+        modalities=["AUDIO"],
         temperature=0.7,
     )
 
-    # 3. 语音识别 (STT) 与 语音合成 (TTS)
-    # 模式 A (推荐混合体验): 如果配置了云端 Key，可取消注释使用商业流式:
-    # from livekit.plugins import deepgram, cartesia
-    # stt = deepgram.STT()
-    # tts = cartesia.TTS()
+    # 2. 本地 Silero VAD (用于端侧低延迟打断判定与语音活性检测)
+    vad = silero.VAD.load()
 
-    # 模式 B (全本地模式): 依赖本地 OpenAI 兼容的 STT/TTS 接口服务 (如 whisper.cpp / kokoro-fastapi)
-    stt_base_url = os.getenv("STT_BASE_URL", "http://127.0.0.1:8000/v1")
-    tts_base_url = os.getenv("TTS_BASE_URL", "http://127.0.0.1:8001/v1")
-
-    stt = openai.STT(base_url=stt_base_url, api_key="dummy")
-    tts = openai.TTS(base_url=tts_base_url, api_key="dummy", model="kokoro")
-
-    # 4. 初始化全双工语音助手 (支持实时打断与低延迟断句)
-    agent = agents.VoicePipelineAgent(
+    # 3. 组装全双工 AgentSession
+    session = AgentSession(
+        llm=realtime_model,
         vad=vad,
-        stt=stt,
-        llm=llm,
-        tts=tts,
-        allow_interruptions=True,     # 启用实时打断 (Barge-in)
-        min_endpointing_delay=0.2,     # 200ms 静音判定结束 (极致优化首句响应延迟)
     )
 
-    # 5. 绑定到房间并启动
-    agent.start(ctx.room)
-    logger.info("Voice Pipeline Agent 已启动，等待用户音频下发...")
+    # 4. 启动 Session 并绑定到当前 WebRTC 房间
+    assistant = GeminiVoiceAssistant()
+    await session.start(
+        room=ctx.room,
+        agent=assistant,
+    )
 
-    # 发送第一句欢迎语
-    await agent.say("你好！我是运行在本地 LM Studio 的 AI 语音助手，请问有什么可以帮您？")
+    logger.info("Gemini Voice Agent 已成功启动，准备就绪！")
+
+    # 5. 主动向用户打招呼
+    await session.generate_reply(
+        instructions="用简短的一句话（中文）向刚进房间的用户打个招呼，告诉他你是 Gemini 语音助手并询问需要什么帮助。"
+    )
 
 if __name__ == "__main__":
-    # 启动工作进程并监听 LiveKit 房间任务分发
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    agents.cli.run_app(server)

@@ -5,9 +5,9 @@ port: 7880
 bind_addresses:
   - "0.0.0.0"
 
-# 鉴权密钥 (用于客户端 Token 生成与 Agent Worker 鉴权)
+# 鉴权密钥 (需保持 >= 32 字符安全长度)
 keys:
-  devkey: "secret"
+  devkey: "secret_livekit_key_for_development_32chars_ok"
 
 # 媒体配置
 rtc:
