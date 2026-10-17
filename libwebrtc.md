@@ -280,8 +280,44 @@ endif ()
      ```
 
 ---
+## 六、开源许可协议 (License)
 
-## 六、总结与技术选型建议
+libwebrtc 遵循 **BSD 3-Clause License**（三条款 BSD 许可证），并附带额外的专利授权条款（Additional IP Rights Grant / PATENTS）：
+
+1. **核心许可证**：**BSD 3-Clause**（宽松开源许可证，允许商用、修改和闭源分发，需保留版权声明与免责声明）。
+2. **附加专利声明**：源自 Google 官方 WebRTC 的专利保护策略（若使用者对 Google 等专利持有方提起与 WebRTC 相关的专利侵权诉讼，则获得的专利授权自动终止）。
+3. **第三方依赖项许可**：底层的 Chromium 第三方库（如 `third_party/` 内的 BoringSSL、libvpx、Opus、dav1d、libyuv 等）各自遵循对应的开源协议（Apache 2.0、BSD、MIT 等）。
+
+---
+
+## 七、典型 Demo 与实践参考
+
+在研究与落地 libwebrtc 时，可以参考以下官方与社区成熟的 Demo 项目：
+
+### 1. Google 官方源码内置 Demo (`src/examples/`)
+
+在 Google 官方 `libwebrtc` 源码树中内置了多种开箱即用的参考实现：
+
+| Demo 工程 | 源码路径 / 平台 | 核心功能与技术点 |
+| :--- | :--- | :--- |
+| **`peerconnection_client` & `peerconnection_server`** | `examples/peerconnection/` (Linux / Win / Mac) | **最经典的端到端 C++ Demo**。包含简易 Socket 信令服务与原生客户端，演示完整的 SDP 协商、ICE 候选者收集及音视频传输全流程。 |
+| **`AppRTCMobile`** | `examples/androidtests/` & `examples/objc/AppRTCMobile` (Android / iOS) | **官方移动端基准 App**。Android 封装 Java/JNI（SurfaceViewRenderer），iOS 封装 Objective-C/Swift（RTCMTLVideoView），对接 AppRTC 信令服务。 |
+| **`stunserver` / `turnserver`** | `examples/turnserver/` | 演示如何基于 WebRTC 底层的 NAT 穿透协议栈搭设 STUN/TURN 测试服务。 |
+| **`audioproc_f`** | `modules/audio_processing/test/` | **音频处理（APM）独立 Demo**。脱离网络传输，单独演示 AEC（回声消除）、ANS（降噪）、AGC（增益控制）离线处理 PCM 音频文件。 |
+
+### 2. 社区知名二次封装与独立 Demo
+
+| Demo / 项目 | 语言 / 依赖栈 | 核心场景与特点 |
+| :--- | :--- | :--- |
+| **`webrtc-streamer`** (`mpromonet/webrtc-streamer`) | 纯 C++ / 原生 libwebrtc | 针对本地摄像头（V4L2）、桌面抓取或 RTSP 网络摄像头，通过 WebRTC 直接推送到前端浏览器播放，内置 HTTP 信令服务器。是研究自定义 VideoCapturer 的最佳范例。 |
+| **`libmediasoupclient` Demo** (`versatica/libmediasoupclient`) | C++ / libwebrtc | mediasoup 官方 C++ 客户端，底层直接基于 `PeerConnectionInterface`，演示在无头 C++ 环境下与 SFU 服务器的高性能音视频交互。 |
+| **`flutter-webrtc-demo`** (`flutter-webrtc/flutter-webrtc-demo`) | Flutter / Dart + 原生二进制 | 跨平台移动端与桌面端音视频通话、屏幕共享与 DataChannel 交互的最佳实践。 |
+| **`node-webrtc` (wrtc)** | Node.js / C++ Addon | 将 libwebrtc 引入 Node.js 环境，用于后端音视频转录、自动拉流推流以及机器人媒体处理。 |
+
+---
+
+
+## 八、总结与技术选型建议
 
 | 需求场景 | 推荐选型 | 理由与考量 |
 | :--- | :--- | :--- |
